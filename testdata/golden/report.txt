@@ -1,0 +1,80 @@
+coverreport: FAIL  acme/demo #42 @ 3f2a9c1 (base 1a2b3c4)
+run: https://github.com/acme/demo/actions/runs/1234
+floors: coverage/floors.json, tolerance 0.1 pts
+
+LAYER    METRIC      COVERED/TOTAL  NOW     FLOOR  TARGET  DELTA   STATUS
+go-unit  statements  8/13           61.54%  62.0   85      -0.46   fail
+go-sql   statements  2/3            66.67%  -      80      -       no_floor
+go-live  statements  10/16          62.50%  60.0   -       +2.50   ok
+go-e2e   statements  10/16          62.50%  -      -       -       report_only
+web      lines       7/8            87.50%  70.0   80      +17.50  ok
+         branches    3/4            75.00%  50.0   75      +25.00  ok
+         functions   3/4            75.00%  -      -       -       no_floor
+mobile   lines       2/3            66.67%  -      -       -       no_floor
+edge     lines       -              -       98.0   95      -       not_measured
+
+Failures (1):
+  - go-unit statements is 61.54%, below its floor 62.0 by more than the 0.1-point tolerance
+
+Patch: 46.67% overall (7/15), target 80%, informational, fail
+  diff: 8 file(s), 38 added line(s), 1 deleted, 1 renamed, 1 binary, 2 unmeasured
+  go-unit: 0.00% (0/6) fail
+    libs/go/calc/calc.go 0/6, uncovered L17-18, L35-37, L39
+  go-sql: 75.00% (3/4) fail
+    libs/go/calc/store_pg.go 3/4, uncovered L9
+  go-live: 30.00% (3/10) fail
+    libs/go/calc/calc.go 0/6, uncovered L17-18, L35-37, L39
+    libs/go/calc/store_pg.go 3/4, uncovered L9
+  go-e2e: 30.00% (3/10) report_only
+    libs/go/calc/calc.go 0/6, uncovered L17-18, L35-37, L39
+    libs/go/calc/store_pg.go 3/4, uncovered L9
+  web: 80.00% (4/5) pass
+    apps/web/src/components/button.tsx 2/3, uncovered L7
+  mobile: - (0/0) exempt
+  edge: not measured
+
+Globs in go-unit:
+  KEY              FILES  METRIC      COVERED/TOTAL  NOW     FLOOR  TARGET  STATUS
+  libs/go/calc/**  1      statements  8/13           61.54%  -      90      no_floor
+
+Globs in web:
+  KEY                               FILES  METRIC     COVERED/TOTAL  NOW      FLOOR  TARGET  STATUS
+  apps/web/src/lib/**               1      lines      5/5            100.00%  100.0  -       ok
+                                           branches   2/2            100.00%  -      -       no_floor
+                                           functions  2/2            100.00%  -      -       no_floor
+  apps/web/src/{components,app}/**  1      lines      2/3            66.67%   -      -       no_floor
+                                           branches   1/2            50.00%   -      -       no_floor
+                                           functions  1/2            50.00%   -      -       no_floor
+
+Ratchet (14 floor(s) can rise or be created; coverreport ratchet writes them):
+  package  go-unit  libs/go/calc statements                     new -> 61.5
+  glob     go-unit  libs/go/calc/** statements                  new -> 61.5
+  layer    go-sql   statements                                  new -> 66.6
+  layer    go-live  statements                                  60.0 -> 62.5
+  package  go-live  libs/go/calc statements                     62.4 -> 62.5
+  layer    web      lines                                       70.0 -> 87.5
+  layer    web      branches                                    50.0 -> 75.0
+  layer    web      functions                                   new -> 75.0
+  glob     web      apps/web/src/lib/** branches                new -> 100.0
+  glob     web      apps/web/src/lib/** functions               new -> 100.0
+  glob     web      apps/web/src/{components,app}/** lines      new -> 66.6
+  glob     web      apps/web/src/{components,app}/** branches   new -> 50.0
+  glob     web      apps/web/src/{components,app}/** functions  new -> 50.0
+  layer    mobile   lines                                       new -> 66.6
+
+Excluded (coverage/exclude.txt):
+  **/*_templ.go                  # templ codegen                          go-unit: 1 file(s) 2 statements; go-live: 1 file(s) 2 statements; go-e2e: 1 file(s) 2 statements
+  libs/go/svc/*/main.go          # thin wiring; the e2e lane measures it  go-unit: 1 file(s) 2 statements; go-live: 1 file(s) 2 statements; go-e2e: 1 file(s) 2 statements
+  apps/web/src/components/ui/**  # vendored shadcn                        web: 1 file(s) 0 branches, 1 functions, 1 lines
+  apps/mobile/lib/**/*.g.dart    # drift codegen                          mobile: 1 file(s) 2 lines
+  apps/web/src/legacy/**         # deleted last quarter                   matches nothing measured
+
+  go-unit scope: layer exclude libs/go/**/store_pg.go: 1 file(s) 3 statements
+  go-sql scope: not included: 3 file(s) 17 statements
+
+Stale floors (match nothing measured; ratchet --prune removes them):
+  package go-live libs/go/gone
+
+Warnings:
+  - coverage/floors.json: layers.retired names no configured layer; not checked
+  - layer mobile: 1 file(s) could not be mapped to a repo path and were dropped (e.g. /opt/flutter/packages/flutter/lib/src/widgets/framework.dart); check paths.prefix / paths.strip

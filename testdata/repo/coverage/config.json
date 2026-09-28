@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "sets": {
+    "sql-adapters": ["libs/go/**/store_pg.go"]
+  },
+  "patch": { "target": 80, "min_lines": 3, "blocking": false },
+  "lowest_files": 3,
+  "layers": [
+    {
+      "id": "go-unit",
+      "label": "Go unit (logic)",
+      "description": "go test -covermode=atomic -coverpkg=./..., database unset; SQL adapters are go-sql's",
+      "format": "go",
+      "inputs": ["coverage-go/unit.out"],
+      "include": ["libs/go/**"],
+      "exclude": ["@sql-adapters"],
+      "metrics": ["statements"],
+      "targets": { "statements": 85 },
+      "packages": { "floors": true, "targets": { "statements": 80 } },
+      "globs": [{ "glob": "libs/go/calc/**", "label": "money path", "targets": { "statements": 90 } }]
+    },
+    {
+      "id": "go-sql",
+      "label": "Go SQL adapters (Postgres)",
+      "format": "go",
+      "inputs": ["coverage-go/live.out"],
+      "include": ["@sql-adapters"],
+      "metrics": ["statements"],
+      "targets": { "statements": 80 }
+    },
+    {
+      "id": "go-live",
+      "label": "Go unit + Postgres",
+      "format": "go",
+      "inputs": ["coverage-go/live.out"],
+      "include": ["libs/go/**"],
+      "metrics": ["statements"],
+      "packages": { "floors": true, "min_size": 5 }
+    },
+    {
+      "id": "go-e2e",
+      "label": "Go e2e",
+      "format": "go",
+      "report_only": true,
+      "inputs": ["coverage-go-e2e/*.out"],
+      "metrics": ["statements"]
+    },
+    {
+      "id": "web",
+      "label": "Web (vitest)",
+      "format": "lcov",
+      "inputs": ["coverage-web/**/lcov.info"],
+      "metrics": ["lines", "branches", "functions"],
+      "targets": { "lines": 80, "branches": 75 },
+      "paths": { "prefix": "apps/web" },
+      "globs": [
+        { "glob": "apps/web/src/lib/**" },
+        { "glob": "apps/web/src/{components,app}/**" }
+      ]
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile (flutter)",
+      "format": "lcov",
+      "inputs": ["coverage-mobile/lcov.info"],
+      "metrics": ["lines"],
+      "paths": { "prefix": "apps/mobile" }
+    },
+    {
+      "id": "edge",
+      "label": "Edge Worker",
+      "format": "lcov",
+      "inputs": ["coverage-edge/lcov.info"],
+      "metrics": ["lines"],
+      "targets": { "lines": 95 },
+      "paths": { "prefix": "infra/edge" }
+    }
+  ]
+}

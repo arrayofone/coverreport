@@ -1,0 +1,92 @@
+diff --git a/apps/web/public/logo.png b/apps/web/public/logo.png
+index 981fc64..9d5c999 100644
+Binary files a/apps/web/public/logo.png and b/apps/web/public/logo.png differ
+diff --git a/apps/web/src/components/button.tsx b/apps/web/src/components/button.tsx
+new file mode 100644
+index 0000000..a1b4004
+--- /dev/null
++++ b/apps/web/src/components/button.tsx
+@@ -0,0 +1,8 @@
++export function Button({ primary }: { primary?: boolean }) {
++  const cls = primary ? "btn btn-primary" : "btn";
++  return <button className={cls}>Click</button>;
++}
++
++export function IconButton() {
++  return <Button primary />;
++}
+diff --git a/apps/web/src/components/ui/card.tsx b/apps/web/src/components/ui/card.tsx
+new file mode 100644
+index 0000000..6b485b8
+--- /dev/null
++++ b/apps/web/src/components/ui/card.tsx
+@@ -0,0 +1,3 @@
++export function Card() {
++  return <div className="card" />;
++}
+diff --git a/apps/web/src/lib/old.ts b/apps/web/src/lib/money.ts
+similarity index 63%
+rename from apps/web/src/lib/old.ts
+rename to apps/web/src/lib/money.ts
+index c561949..f4cffff 100644
+--- a/apps/web/src/lib/old.ts
++++ b/apps/web/src/lib/money.ts
+@@ -5,2 +5,2 @@ export function format(cents: number): string {
+-export function parse(s: string) {
+-  return Number(s) * 100;
++export function parse(s: string): number {
++  return Math.round(Number(s) * 100);
+diff --git a/docs/README.md b/docs/README.md
+index 5bedb99..9a88afe 100644
+--- a/docs/README.md
++++ b/docs/README.md
+@@ -3 +3 @@
+-A fixture repo.
++A fixture repo for coverreport.
+diff --git a/libs/go/calc/calc.go b/libs/go/calc/calc.go
+index a75fe4d..1b2da4c 100644
+--- a/libs/go/calc/calc.go
++++ b/libs/go/calc/calc.go
+@@ -13,0 +14,2 @@ func Classify(n int) (string, error) {
++
++	// Small numbers get a name.
+@@ -14,0 +17,2 @@ func Classify(n int) (string, error) {
++	case n == 0:
++		return "zero", nil
+@@ -28,0 +33,8 @@ func Sum(xs []int) int {
++
++// Unused is never called.
++func Unused() int {
++	a := 1
++	b := 2
++
++	return a + b
++}
+diff --git a/libs/go/calc/store_pg.go b/libs/go/calc/store_pg.go
+new file mode 100644
+index 0000000..e0c2cb5
+--- /dev/null
++++ b/libs/go/calc/store_pg.go
+@@ -0,0 +1,12 @@
++package calc
++
++// Store is the Postgres adapter fixture.
++type Store struct{ rows []int }
++
++// Load reads rows.
++func (s *Store) Load() []int {
++	if s == nil {
++		return nil
++	}
++	return s.rows
++}
+diff --git a/libs/go/old/old.go b/libs/go/old/old.go
+deleted file mode 100644
+index eb24ef4..0000000
+--- a/libs/go/old/old.go
++++ /dev/null
+@@ -1,4 +0,0 @@
+-package old
+-
+-// Old is deleted by the change.
+-func Old() int { return 1 }

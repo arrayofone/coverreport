@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "tolerance_pts": 0.1,
+  "layers": {
+    "edge": { "lines": 98.0 },
+    "go-live": { "statements": 60.0 },
+    "go-unit": { "statements": 62.0 },
+    "retired": { "lines": 50.0 },
+    "web": { "branches": 50.0, "lines": 70.0 }
+  },
+  "packages": {
+    "go-live": {
+      "libs/go/calc": { "statements": 62.4 },
+      "libs/go/gone": { "statements": 50.0 }
+    }
+  },
+  "globs": {
+    "web": {
+      "apps/web/src/lib/**": { "lines": 100.0 }
+    }
+  }
+}

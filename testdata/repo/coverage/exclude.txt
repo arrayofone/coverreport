@@ -1,0 +1,7 @@
+# Generated and vendored code is never measured. Every line needs a reason.
+**/*_templ.go  # templ codegen
+libs/go/svc/*/main.go  # thin wiring; the e2e lane measures it
+apps/web/src/components/ui/**  # vendored shadcn
+
+apps/mobile/lib/**/*.g.dart  # drift codegen
+apps/web/src/legacy/**  # deleted last quarter
