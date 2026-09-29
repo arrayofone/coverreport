@@ -184,7 +184,6 @@ type Row struct {
 	// one ("Go unit + Postgres", "App (vitest) lines").
 	Label, Long string
 	Group       string
-	Index       int
 
 	Covered, Total int64
 	// Pct is the measurement (for a carried row, the base branch's).
@@ -427,7 +426,7 @@ func (v *View) rows() {
 		short, group := l.ShortLabel, l.Group
 		for i, m := range l.Metrics {
 			mr := l.Totals[m]
-			row := &Row{Layer: l, Metric: m, Primary: i == 0, Label: short, Long: l.Label, Group: group, Index: len(v.Rows),
+			row := &Row{Layer: l, Metric: m, Primary: i == 0, Label: short, Long: l.Label, Group: group,
 				Covered: mr.Covered, Total: mr.Total, Pct: mr.Pct, Floor: mr.Floor, Target: mr.Target, Delta: mr.Delta, RatchetTo: mr.RatchetTo}
 			if len(l.Metrics) > 1 {
 				row.Label += " " + m
