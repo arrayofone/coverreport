@@ -1,0 +1,196 @@
+# coverreport's whole CI recipe as one step, so every repository that runs
+# it runs the same one: read the sticky comment back, analyze, render, upload
+# the page, render again with the page's URL, publish the annotations, the
+# comment and the job summary, then check. README.md, "In CI", documents the
+# inputs and has a complete workflow.
+#
+# Every step is `action/run.sh <phase>`, and every value reaches it through
+# the step's env: no expression is ever interpolated into a script, so an
+# input can hold anything without becoming shell code. action/action_test.go
+# runs these steps as written (their env, their order, the upload in the
+# middle) over testdata/, against the CLI built from this same checkout;
+# that is what keeps this file from drifting away from the commands it runs.
+#
+# The tool is built from the action's own checkout with the Go already on
+# PATH. The module is stdlib-only, so the build downloads nothing.
+name: coverreport
+description: >-
+  One coverage gate for Go coverprofiles and LCOV: floors that only ratchet
+  up, patch coverage, a sticky PR comment, the job summary, annotations on
+  untested changed lines and a one-file HTML page.
+author: arrayofone
+
+inputs:
+  config:
+    description: The config file, relative to root unless absolute.
+    default: coverage/config.json
+  root:
+    description: >-
+      The checkout of the commit measured; the config's paths are relative
+      to it.
+    default: .
+  artifacts:
+    description: >-
+      The directory the collectors' coverage-* artifacts were downloaded
+      into; the layers' inputs globs are resolved in it.
+    default: coverage-artifacts
+  source-root:
+    description: >-
+      A checkout of the commit measured, for the lines quoted in the comment,
+      the annotations and the page. Empty means root.
+    default: ""
+  diff-base:
+    description: >-
+      The revision patch coverage is computed against. HEAD^1 is a
+      pull_request merge commit's base, so check out with fetch-depth 2.
+      Empty skips patch coverage.
+    default: HEAD^1
+  diff:
+    description: A unified diff file to use instead of running git; wins over diff-base.
+    default: ""
+  baseline:
+    description: >-
+      A report.json the base branch saved. A layer this run did not measure
+      shows its numbers, labelled as carried (display only). A path that does
+      not exist yet is a notice.
+    default: ""
+  endpoints:
+    description: >-
+      The endpoint registry's endpoints.json; its baseline violations fail
+      the check. A path that does not exist is a warning.
+    default: ""
+  require:
+    description: >-
+      Layer ids that must have been measured, comma-separated. A required
+      layer with no inputs fails the check; any other unmeasured layer is
+      "not affected".
+    default: ""
+  github-token:
+    description: >-
+      The token the sticky comment is read and written with (it needs
+      pull-requests write). It is only ever sent to the GitHub API.
+    default: ${{ github.token }}
+  comment:
+    description: >-
+      Whether to upsert the sticky comment on a pull_request run: true or
+      false.
+    default: "true"
+  page-name:
+    description: >-
+      The page's artifact name (unarchived artifacts are named after their
+      file). Empty means coverreport-<PR number>.html, or
+      coverreport-<run id>.html outside a pull request.
+    default: ""
+  retention-days:
+    description: >-
+      How long the page artifact is kept. An expired artifact is still billed
+      until it is deleted, so keep this short.
+    default: "1"
+  out-dir:
+    description: >-
+      Where report.json, the four surfaces and previous.md are written.
+      Empty means $RUNNER_TEMP/coverreport.
+    default: ""
+
+outputs:
+  report:
+    description: >-
+      The path of report.json, a file (a report is never a job output). Set
+      once analyze has run, whatever the check says.
+    value: ${{ steps.analyze.outputs.report }}
+  dir:
+    description: The directory holding report.json, comment.md, summary.md, annotations.txt and report.html.
+    value: ${{ steps.setup.outputs.dir }}
+  page-url:
+    description: The uploaded page's URL (it opens for anyone signed in who can read the repository).
+    value: ${{ steps.page.outputs.artifact-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build coverreport
+      id: setup
+      shell: bash
+      env:
+        CR_OUT_DIR: ${{ inputs.out-dir }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" setup
+
+    - name: Read the sticky comment back
+      id: fetch
+      shell: bash
+      env:
+        CR_BIN: ${{ steps.setup.outputs.bin }}
+        CR_DIR: ${{ steps.setup.outputs.dir }}
+        CR_COMMENT: ${{ inputs.comment }}
+        CR_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" fetch
+
+    - name: Analyze
+      id: analyze
+      shell: bash
+      env:
+        CR_BIN: ${{ steps.setup.outputs.bin }}
+        CR_DIR: ${{ steps.setup.outputs.dir }}
+        CR_ROOT: ${{ inputs.root }}
+        CR_CONFIG: ${{ inputs.config }}
+        CR_ARTIFACTS: ${{ inputs.artifacts }}
+        CR_DIFF: ${{ inputs.diff }}
+        CR_DIFF_BASE: ${{ inputs.diff-base }}
+        CR_BASELINE: ${{ inputs.baseline }}
+        CR_ENDPOINTS: ${{ inputs.endpoints }}
+        CR_REQUIRE: ${{ inputs.require }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" analyze
+
+    - name: Render
+      id: render
+      shell: bash
+      env:
+        CR_BIN: ${{ steps.setup.outputs.bin }}
+        CR_DIR: ${{ steps.setup.outputs.dir }}
+        CR_REPORT: ${{ steps.analyze.outputs.report }}
+        CR_ROOT: ${{ inputs.root }}
+        CR_SOURCE_ROOT: ${{ inputs.source-root }}
+        CR_PAGE_NAME: ${{ inputs.page-name }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" render
+
+    # archive: false uploads the page as-is, so it opens in the browser
+    # instead of downloading as a zip; the artifact takes the file's name.
+    # overwrite lets a re-run replace the first attempt's page instead of
+    # failing on the name.
+    - name: Upload the page
+      id: page
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        path: ${{ steps.render.outputs.page }}
+        archive: false
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: true
+        if-no-files-found: error
+
+    - name: Publish
+      id: publish
+      shell: bash
+      env:
+        CR_BIN: ${{ steps.setup.outputs.bin }}
+        CR_DIR: ${{ steps.setup.outputs.dir }}
+        CR_REPORT: ${{ steps.analyze.outputs.report }}
+        CR_ROOT: ${{ inputs.root }}
+        CR_SOURCE_ROOT: ${{ inputs.source-root }}
+        CR_PAGE_URL: ${{ steps.page.outputs.artifact-url }}
+        CR_PAGE_NAME: ${{ steps.render.outputs.page-name }}
+        CR_COMMENT: ${{ inputs.comment }}
+        CR_TOKEN: ${{ inputs.github-token }}
+        CR_PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" publish
+
+    - name: Check
+      id: check
+      shell: bash
+      env:
+        CR_BIN: ${{ steps.setup.outputs.bin }}
+        CR_DIR: ${{ steps.setup.outputs.dir }}
+        CR_REPORT: ${{ steps.analyze.outputs.report }}
+        CR_ROOT: ${{ inputs.root }}
+        CR_CONFIG: ${{ inputs.config }}
+        CR_REQUIRE: ${{ inputs.require }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh" check

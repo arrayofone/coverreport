@@ -122,88 +122,210 @@ base. A diff given with `--diff` may use any context size; combined diffs
 
 The collectors upload artifacts (`coverage-go`, `coverage-app`,
 `coverage-mobile`, ...; JSON job outputs are not a safe channel for this
-data), and one job downloads them all and runs the reporter:
+data), and one job downloads them all and runs this repository's composite
+action. The action is the whole recipe in one step, so every repository that
+adopts it runs the same one rather than a copy:
 
 ```yaml
-coverage:
-  needs: [go-services, check, mobile]
-  # Run even when a collector was path-filtered out: its layer is then
-  # "not affected", and --require names the ones that must have reported.
-  if: ${{ !cancelled() }}
-  runs-on: ubuntu-latest
-  permissions:
-    contents: read
-    pull-requests: write # the sticky comment
-    actions: read        # download-artifact
-  env:
-    CR: github.com/arrayofone/coverreport/cmd/coverreport@<pinned-sha>
-    GITHUB_TOKEN: ${{ github.token }}
-  steps:
-    - uses: actions/checkout@v5
-      with: { fetch-depth: 2 } # the merge commit and its first parent
-    - uses: actions/setup-go@v6 # any Go >= 1.25; a repo's own dev shell works too
-      with: { go-version: stable }
-    - uses: actions/download-artifact@v5
-      with: { pattern: coverage-*, path: coverage-artifacts }
+- uses: arrayofone/coverreport@<commit-sha>
+  with:
+    require: go-unit,go-live
+```
 
-    - name: Analyze
-      run: |
-        go run "$CR" analyze --inputs coverage-artifacts --diff-base HEAD^1 \
-          --endpoints coverage-artifacts/coverage-endpoints/endpoints.json --out report.json
+Pin a full commit SHA, never a branch or a tag, so a consumer's CI only
+changes when it is bumped on purpose. The action builds coverreport from its
+own checkout: the module is stdlib-only, so nothing is downloaded, and the
+one thing it needs from the job is a Go toolchain on PATH
+([below](#go-on-path)). Its steps are bash, and it is tested on Linux.
 
-    # The push history lives in the sticky comment itself: read it back first.
-    - name: Previous comment
-      if: github.event_name == 'pull_request'
-      run: go run "$CR" comment --fetch previous.md
+The steps, in order ([`action/run.sh`](action/run.sh) holds every command):
 
-    - name: Render
-      run: |
-        touch previous.md
-        go run "$CR" render --report report.json --out coverage-out --source-root . --previous previous.md
+1. `go build ./cmd/coverreport` in the action's directory, with `GOWORK=off`,
+   `GOTOOLCHAIN=local`, `GOPROXY=off`, `CGO_ENABLED=0` and the job's
+   `GOFLAGS` cleared, so neither the workspace's go.work nor the job's Go
+   settings can reach the build, and an older Go fails saying so instead of
+   fetching a newer one.
+2. `comment --fetch`: on a `pull_request` run, the current sticky comment,
+   whose hidden state is the push-by-push history. A comment that cannot be
+   read is a warning, and the history starts again.
+3. `analyze`: `report.json`, from the artifacts, the `diff-base..HEAD` diff,
+   `baseline`, `endpoints` and `require`. The pull request's title and head
+   commit come from `$GITHUB_EVENT_PATH`.
+4. `render`: the four surfaces, quoting the lines that never ran from the
+   checkout.
+5. `actions/upload-artifact` (pinned by commit): the page, unarchived so it
+   opens in the browser, kept for `retention-days`.
+6. `render` again with the page's URL, so the comment, the summary and every
+   annotation link it. Then the annotations go to stdout, the sticky comment
+   is upserted, and `summary.md` is appended to `$GITHUB_STEP_SUMMARY`. The
+   comment is skipped, with a notice, on a fork's pull request (its token is
+   read-only) and on any run that is not a `pull_request` one.
+7. `check --require`: the gate. The step fails when a gate fails, with one
+   error annotation per failed gate. A sticky comment that could not be
+   posted fails it too, but only here, after the gate has run and everything
+   else was published.
 
-    - name: Upload the page
-      id: page
-      uses: actions/upload-artifact@v7
-      with:
-        name: coverage-${{ github.event.pull_request.number || github.run_id }}.html
-        path: coverage-out/report.html
-        archive: false     # a single HTML file opens in the browser
-        retention-days: 1  # an expired artifact still bills until deleted
+`action/action_test.go` runs `action.yml`'s steps as written (their env, their
+order, the upload in the middle) against the CLI built from the same commit,
+over `testdata/`: a pull request, a fork's, a push, every optional input, a
+shallow checkout, no Go, the job's own Go settings, a comment the API refuses.
+The action cannot drift from the commands it runs without that test failing.
+Another CI system runs the same commands; `action/run.sh` is the reference.
 
-    # Render again now that the page has a URL, so everything links it.
-    - name: Publish
-      run: |
-        go run "$CR" render --report report.json --out coverage-out --source-root . --previous previous.md \
-          --artifact-url "${{ steps.page.outputs.artifact-url }}" --artifact-name "coverage-${{ github.event.pull_request.number || github.run_id }}.html"
-        cat coverage-out/summary.md >> "$GITHUB_STEP_SUMMARY"
-        cat coverage-out/annotations.txt
-        if [ "${{ github.event_name }}" = pull_request ]; then
-          go run "$CR" comment --body coverage-out/comment.md
-        fi
+### Inputs
 
-    # The gate itself; --require only the layers whose collector ran.
-    - name: Check
-      run: go run "$CR" check --report report.json --require go-unit,go-live
+| Input | Default | Meaning |
+|:--|:--|:--|
+| `config` | `coverage/config.json` | the config, relative to `root` unless absolute |
+| `root` | `.` | the checkout of the commit measured (`--root`) |
+| `artifacts` | `coverage-artifacts` | the directory the `coverage-*` artifacts were downloaded into (`--inputs`). One that does not exist is a warning: every layer is then not measured, and every required one fails |
+| `source-root` | none | a checkout to quote the lines that never ran from; empty means `root` |
+| `diff-base` | `HEAD^1` | patch coverage is `<diff-base>..HEAD`. `HEAD^1` is the merge commit's base, so check out with `fetch-depth: 2`; empty skips patch coverage |
+| `diff` | none | a unified diff file to use instead; wins over `diff-base` |
+| `baseline` | none | a `report.json` the base branch saved (`--baseline`). A path that does not exist yet is a notice |
+| `endpoints` | none | the endpoint registry's `endpoints.json` (`--endpoints`) |
+| `require` | none | layer ids that must have been measured, comma-separated; given to both `analyze` and `check` |
+| `github-token` | `${{ github.token }}` | reads and writes the sticky comment (`pull-requests: write`). Only the `comment` command's environment carries it |
+| `comment` | `true` | `false` skips the sticky comment and its fetch |
+| `page-name` | none | the page's artifact name; empty means `coverreport-<PR number>.html`, or `coverreport-<run id>.html` outside a pull request |
+| `retention-days` | `1` | how long the page is kept: an expired artifact is still billed until it is deleted |
+| `out-dir` | none | where `report.json`, the four surfaces and `previous.md` go; empty means `$RUNNER_TEMP/coverreport` |
+
+Paths are relative to the workspace, except `config`, which is relative to
+`root`.
+
+### Outputs
+
+| Output | Meaning |
+|:--|:--|
+| `report` | the path of `report.json`: a file, never the report itself as a job output. Set once `analyze` has run, whatever the check says |
+| `dir` | the directory holding `report.json`, `comment.md`, `summary.md`, `annotations.txt` and `report.html` |
+| `page-url` | the uploaded page's URL |
+
+### Go on PATH
+
+The action needs Go 1.25 or newer on PATH, and its first step fails saying so
+when there is none. On a hosted runner, `actions/setup-go` before it is
+enough (the workflow below does that). A job whose tools come from a nix dev
+shell has to export the shell, once, before the action: a composite action's
+steps set their own `shell:`, so they never run inside `defaults.run.shell`.
+Exporting the whole PATH brings the shell's git along for `diff-base` too:
+
+```yaml
+- name: Enter the dev shell (once)
+  run: |
+    # $PATH expands in the inner shell, the one nix develop starts.
+    # shellcheck disable=SC2016
+    nix develop .#go --command bash -c 'echo "PATH=$PATH" >> "$GITHUB_ENV"'
+```
+
+### A complete workflow
+
+This is [`examples/coverage.yml`](examples/coverage.yml): one collector job,
+then the coverage job, which also keeps the base branch's last passing report
+as the baseline.
+
+```yaml
+# A complete workflow around the coverreport action: a collector job uploads
+# a coverage-* artifact, and the coverage job downloads every one of them and
+# runs the action. Replace <commit-sha> with the full commit you pin.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      # coverage/config.json's go-unit layer reads coverage-go/unit.out.
+      - run: go test -covermode=atomic -coverpkg=./... -coverprofile=unit.out ./...
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-go
+          path: unit.out
+          retention-days: 1
+
+  coverage:
+    needs:
+      - test
+    # Run even when a collector failed or was skipped: its layer is then
+    # "not affected", and require names the layers that must have reported.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # the sticky comment
+    steps:
+      # The merge commit and its first parent: patch coverage is HEAD^1..HEAD.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      # The action builds coverreport with the Go on PATH (1.25 or newer).
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      # The base branch's last passing report: a layer this pull request did
+      # not run shows its numbers, labelled as carried.
+      - if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: coverreport-baseline/report.json
+          key: coverreport-baseline-${{ github.event.pull_request.base.sha }}
+          restore-keys: coverreport-baseline-
+      - id: coverage
+        uses: arrayofone/coverreport@<commit-sha>
+        with:
+          require: go-unit
+          baseline: coverreport-baseline/report.json
+      # On main, a report whose gates held becomes the next baseline. The
+      # cache path is part of the cache's version, so it is copied to exactly
+      # the path the restore above names.
+      - if: github.event_name == 'push'
+        run: mkdir -p coverreport-baseline && cp "$REPORT" coverreport-baseline/report.json
+        env:
+          REPORT: ${{ steps.coverage.outputs.report }}
+      - if: github.event_name == 'push'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: coverreport-baseline/report.json
+          key: coverreport-baseline-${{ github.sha }}
 ```
 
 Notes:
 
 - **Forks.** On a `pull_request` from a fork, `GITHUB_TOKEN` is read-only and
-  cannot comment; the comment step then fails with a message saying so. The
-  summary, annotations, page and check still work.
+  cannot comment, so the action skips the comment with a notice. The summary,
+  annotations, page and check still work.
 - **The base branch's numbers.** A layer whose collector did not run on this
-  PR shows as "not run". To show main's numbers instead, save the
-  `report.json` of each main run (an `actions/cache` entry keyed by the
-  commit, restored with a `restore-keys` prefix) and pass it as
-  `analyze --baseline`.
+  PR shows as "not run". The workflow above saves each passing `main` run's
+  `report.json` in the Actions cache and restores the newest into `baseline`
+  on a pull request. The cache's `path` is part of its version, so the save
+  and the restore must name byte-identical paths: that is why the report is
+  copied to a fixed one first.
+- **Permissions.** `pull-requests: write` for the comment, `contents: read`
+  for the checkout. Downloading this run's own artifacts needs none.
 - **Annotations** are workflow commands on stdout, so the job needs no
   `checks: write`.
-- **The page** needs a signed-in reader with access to the repository, like
-  any artifact. It makes no network request, so no content-security policy
-  can break it beyond its inline stylesheet.
-- The module is public, so `go run pkg@sha` needs no token and no
-  `GOPRIVATE`. Pin a full commit SHA rather than a branch, so a consumer's CI
-  only changes when it is bumped on purpose.
+- **The page** is its artifact: upload-artifact names an unarchived artifact
+  after its file (the `name` input is ignored), which is why the action
+  uploads a copy called `page-name`. The default stays clear of `coverage-*`,
+  so a re-run's download step never pulls the first attempt's page in as an
+  input. It needs a signed-in reader with access to the repository, like any
+  artifact, and makes no network request, so no content-security policy can
+  break it beyond its inline stylesheet.
 
 Locally, the same commands work over whatever artifacts are on disk:
 `coverreport render --report report.json --out /tmp/cov --source-root .` and
@@ -278,14 +400,26 @@ real analysis over the fixture (`internal/render/rendertest`). The page
 goldens carry a placeholder for the stylesheet, which is pinned once per brand
 in `testdata/render/css/`.
 
-Layout: `cmd/coverreport` (entry point), `internal/cli` (flags, exit codes),
-`internal/report` (the analysis and the report model), `internal/render/view`
-(every rendering decision, made once), `internal/render/github` (comment,
-summary, annotations), `internal/render/html` (the page and its treemap),
-`internal/render/text`, `internal/ghapi` (the comment upsert), `internal/brand`,
-`internal/endpoints`, `internal/source`, and one package per input: `gocov`,
-`lcov`, `diff`, `config`, `floors`, `exclude`, `glob`, `paths`, `coverage`
-(the shared arithmetic).
+The action's tests (`action/`) run `action.yml`'s steps in a small stand-in
+for the Actions runner: they need `bash` and `git` on PATH, build the CLI the
+way the action does, and serve the comments API from an `httptest` server.
+`action.yml` and the example are read by a YAML subset parser there (the
+module takes no dependencies), which refuses anything outside the subset
+rather than half-reading it. Before a change to either file lands, also run
+`actionlint examples/coverage.yml` and validate `action.yml` against the
+published schema (`check-jsonschema --builtin-schema vendor.github-actions
+action.yml`); neither tool is a dependency of the tests.
+
+Layout: `action.yml` and `action/` (the composite action and its tests),
+`examples/` (the consumer workflow the README embeds), `cmd/coverreport` (entry
+point), `internal/cli` (flags, exit codes), `internal/report` (the analysis and
+the report model), `internal/render/view` (every rendering decision, made
+once), `internal/render/github` (comment, summary, annotations),
+`internal/render/html` (the page and its treemap), `internal/render/text`,
+`internal/ghapi` (the comment upsert), `internal/brand`, `internal/endpoints`,
+`internal/source`, and one package per input: `gocov`, `lcov`, `diff`,
+`config`, `floors`, `exclude`, `glob`, `paths`, `coverage` (the shared
+arithmetic).
 
 ## License
 

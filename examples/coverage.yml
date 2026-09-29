@@ -1,0 +1,76 @@
+# A complete workflow around the coverreport action: a collector job uploads
+# a coverage-* artifact, and the coverage job downloads every one of them and
+# runs the action. Replace <commit-sha> with the full commit you pin.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      # coverage/config.json's go-unit layer reads coverage-go/unit.out.
+      - run: go test -covermode=atomic -coverpkg=./... -coverprofile=unit.out ./...
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-go
+          path: unit.out
+          retention-days: 1
+
+  coverage:
+    needs:
+      - test
+    # Run even when a collector failed or was skipped: its layer is then
+    # "not affected", and require names the layers that must have reported.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # the sticky comment
+    steps:
+      # The merge commit and its first parent: patch coverage is HEAD^1..HEAD.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      # The action builds coverreport with the Go on PATH (1.25 or newer).
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      # The base branch's last passing report: a layer this pull request did
+      # not run shows its numbers, labelled as carried.
+      - if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: coverreport-baseline/report.json
+          key: coverreport-baseline-${{ github.event.pull_request.base.sha }}
+          restore-keys: coverreport-baseline-
+      - id: coverage
+        uses: arrayofone/coverreport@<commit-sha>
+        with:
+          require: go-unit
+          baseline: coverreport-baseline/report.json
+      # On main, a report whose gates held becomes the next baseline. The
+      # cache path is part of the cache's version, so it is copied to exactly
+      # the path the restore above names.
+      - if: github.event_name == 'push'
+        run: mkdir -p coverreport-baseline && cp "$REPORT" coverreport-baseline/report.json
+        env:
+          REPORT: ${{ steps.coverage.outputs.report }}
+      - if: github.event_name == 'push'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: coverreport-baseline/report.json
+          key: coverreport-baseline-${{ github.sha }}
