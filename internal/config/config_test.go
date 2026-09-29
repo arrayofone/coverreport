@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/coverage"
 )
 
 func TestFixtureConfigResolves(t *testing.T) {

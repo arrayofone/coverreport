@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 // The package map is a nested squarified treemap (Bruls, Huizing and van

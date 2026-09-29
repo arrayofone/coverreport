@@ -16,8 +16,8 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 // section is one droppable piece of a markdown document. When a document

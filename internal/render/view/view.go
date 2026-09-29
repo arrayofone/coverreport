@@ -28,13 +28,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/brand"
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/glob"
-	"github.com/DarrenBangsund/coverreport/internal/report"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/brand"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 // Row states.

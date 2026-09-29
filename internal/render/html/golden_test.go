@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/rendertest"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/render/rendertest"
+	"github.com/arrayofone/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 func build(t *testing.T, s rendertest.State) *view.View {

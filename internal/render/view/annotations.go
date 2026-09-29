@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 // MaxAnnotations is how many annotations a run emits. GitHub shows at most

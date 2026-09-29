@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/brand"
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/render/rendertest"
-	"github.com/DarrenBangsund/coverreport/internal/report"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/brand"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/render/rendertest"
+	"github.com/arrayofone/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 func states(t *testing.T) map[string]*View {

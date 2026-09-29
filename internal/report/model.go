@@ -8,10 +8,10 @@
 package report
 
 import (
-	"github.com/DarrenBangsund/coverreport/internal/brand"
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/brand"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/floors"
 )
 
 // Version is report.json's schema version. Additive changes (a new

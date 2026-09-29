@@ -17,10 +17,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/brand"
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/glob"
-	"github.com/DarrenBangsund/coverreport/internal/paths"
+	"github.com/arrayofone/coverreport/internal/brand"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/paths"
 )
 
 // Version is the only config version this build reads.

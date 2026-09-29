@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/report"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 // Line states in a listing.

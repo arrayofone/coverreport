@@ -16,8 +16,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/glob"
 )
 
 // Version is the only floors version this build reads or writes.

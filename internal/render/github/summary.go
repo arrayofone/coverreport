@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 // SummaryLimit is GitHub's cap on one step's job summary: 1 MiB.

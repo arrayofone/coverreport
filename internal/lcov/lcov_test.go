@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/coverage"
 )
 
 func parse(t *testing.T, inputs ...string) *Set {

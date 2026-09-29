@@ -15,7 +15,7 @@ It is a single Go module with **no dependencies** (standard library only), so
 any repository can run it at a pinned commit:
 
 ```sh
-go run github.com/DarrenBangsund/coverreport/cmd/coverreport@<sha> check
+go run github.com/arrayofone/coverreport/cmd/coverreport@<sha> check
 ```
 
 The file formats (`coverage/config.json`, `coverage/floors.json`,
@@ -136,7 +136,7 @@ coverage:
     pull-requests: write # the sticky comment
     actions: read        # download-artifact
   env:
-    CR: github.com/DarrenBangsund/coverreport/cmd/coverreport@<pinned-sha>
+    CR: github.com/arrayofone/coverreport/cmd/coverreport@<pinned-sha>
     GITHUB_TOKEN: ${{ github.token }}
   steps:
     - uses: actions/checkout@v5
@@ -201,9 +201,9 @@ Notes:
 - **The page** needs a signed-in reader with access to the repository, like
   any artifact. It makes no network request, so no content-security policy
   can break it beyond its inline stylesheet.
-- With the module private, `go run pkg@sha` needs
-  `GOPRIVATE=github.com/DarrenBangsund/*` and a token git can use;
-  alternatively vendor a copy of the module at a pinned commit.
+- The module is public, so `go run pkg@sha` needs no token and no
+  `GOPRIVATE`. Pin a full commit SHA rather than a branch, so a consumer's CI
+  only changes when it is bumped on purpose.
 
 Locally, the same commands work over whatever artifacts are on disk:
 `coverreport render --report report.json --out /tmp/cov --source-root .` and

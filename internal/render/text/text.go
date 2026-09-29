@@ -10,9 +10,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 // Options controls how much is printed.

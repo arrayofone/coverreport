@@ -17,14 +17,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/brand"
-	"github.com/DarrenBangsund/coverreport/internal/config"
-	"github.com/DarrenBangsund/coverreport/internal/diff"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/exclude"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/glob"
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/brand"
+	"github.com/arrayofone/coverreport/internal/config"
+	"github.com/arrayofone/coverreport/internal/diff"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/exclude"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 // Now is every golden report's generated_at.

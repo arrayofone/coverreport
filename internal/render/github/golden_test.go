@@ -3,9 +3,9 @@ package github
 import (
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/rendertest"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/render/rendertest"
+	"github.com/arrayofone/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 // build decides one golden state the way the render command does.

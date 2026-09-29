@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 //go:embed report.html.tmpl

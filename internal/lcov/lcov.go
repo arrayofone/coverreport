@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/coverage"
 )
 
 // BranchKey identifies one branch outcome. Block and Branch are kept as the

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 // The fixed-width grids. Each returns the body of a ```diff block, every

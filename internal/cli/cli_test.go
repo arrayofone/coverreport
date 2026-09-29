@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 const (

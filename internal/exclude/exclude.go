@@ -23,7 +23,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DarrenBangsund/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/glob"
 )
 
 // Rule is one exclusion.

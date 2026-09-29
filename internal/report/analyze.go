@@ -13,16 +13,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/config"
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/diff"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/exclude"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/glob"
-	"github.com/DarrenBangsund/coverreport/internal/gocov"
-	"github.com/DarrenBangsund/coverreport/internal/lcov"
-	"github.com/DarrenBangsund/coverreport/internal/paths"
+	"github.com/arrayofone/coverreport/internal/config"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/diff"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/exclude"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/glob"
+	"github.com/arrayofone/coverreport/internal/gocov"
+	"github.com/arrayofone/coverreport/internal/lcov"
+	"github.com/arrayofone/coverreport/internal/paths"
 )
 
 // Input is everything one analysis reads. The CLI fills it from flags and

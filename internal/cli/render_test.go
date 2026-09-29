@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 // render over the golden report writes all four surfaces, each what its

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/DarrenBangsund/coverreport/internal/coverage"
-	"github.com/DarrenBangsund/coverreport/internal/diff"
+	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/diff"
 )
 
 // patch computes patch coverage: of the lines this diff added, how many can

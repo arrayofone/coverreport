@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/ghapi"
-	"github.com/DarrenBangsund/coverreport/internal/render/github"
-	"github.com/DarrenBangsund/coverreport/internal/render/html"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
-	"github.com/DarrenBangsund/coverreport/internal/report"
-	"github.com/DarrenBangsund/coverreport/internal/source"
+	"github.com/arrayofone/coverreport/internal/ghapi"
+	"github.com/arrayofone/coverreport/internal/render/github"
+	"github.com/arrayofone/coverreport/internal/render/html"
+	"github.com/arrayofone/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/source"
 )
 
 // Surface file names, written into render's --out directory.

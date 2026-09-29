@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/render/rendertest"
-	"github.com/DarrenBangsund/coverreport/internal/render/view"
+	"github.com/arrayofone/coverreport/internal/render/rendertest"
+	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
 func pages(t *testing.T) map[string]string {

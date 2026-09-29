@@ -24,13 +24,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarrenBangsund/coverreport/internal/config"
-	"github.com/DarrenBangsund/coverreport/internal/diff"
-	"github.com/DarrenBangsund/coverreport/internal/endpoints"
-	"github.com/DarrenBangsund/coverreport/internal/exclude"
-	"github.com/DarrenBangsund/coverreport/internal/floors"
-	"github.com/DarrenBangsund/coverreport/internal/render/text"
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/config"
+	"github.com/arrayofone/coverreport/internal/diff"
+	"github.com/arrayofone/coverreport/internal/endpoints"
+	"github.com/arrayofone/coverreport/internal/exclude"
+	"github.com/arrayofone/coverreport/internal/floors"
+	"github.com/arrayofone/coverreport/internal/render/text"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 // Exit codes.

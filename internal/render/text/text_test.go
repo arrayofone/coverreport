@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/DarrenBangsund/coverreport/internal/report"
+	"github.com/arrayofone/coverreport/internal/report"
 )
 
 var update = flag.Bool("update", false, "rewrite testdata/golden from the current output")
