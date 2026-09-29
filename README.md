@@ -394,9 +394,10 @@ The renderers' goldens are in `testdata/render/<state>/` (`comment.md`,
 can be in: `ok`, `fail`, `warn` (patch under target, informational),
 `first-run` (no floors file), `carried` (a layer not run, carried from main,
 rendered without a source checkout), `e2e` (a report-only layer reaching code
-no gated layer does), `multi` (every kind of failure at once) and `large`
-(rendered into small budgets to show the shortening). Each is built by the
-real analysis over the fixture (`internal/render/rendertest`). The page
+no gated layer does), `multi` (every kind of failure at once), `one-line` (one
+edited line no test reaches, so every count of changed lines is one) and
+`large` (rendered into small budgets to show the shortening). Each is built
+by the real analysis over the fixture (`internal/render/rendertest`). The page
 goldens carry a placeholder for the stylesheet, which is pinned once per brand
 in `testdata/render/css/`.
 

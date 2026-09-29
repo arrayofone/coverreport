@@ -190,7 +190,7 @@
   {{- else}}
   <div class="patch-top">
     <div class="readout">{{printf "%.1f" (deref $v.Patch.Overall.Pct)}}<small>%</small></div>
-    <p class="patch-note"><b>{{$v.Patch.Overall.Covered}} of {{$v.Patch.Overall.Total}}</b> changed lines ran under a test. The target is {{trim $v.Patch.Target}}%, {{if $v.Patch.Blocking}}and it blocks{{else if $v.Patch.Until}}informational until {{$v.Patch.Until}}{{else}}informational{{end}}.</p>
+    <p class="patch-note"><b>{{$v.Patch.Overall.Covered}} of {{$v.Patch.Overall.Total}}</b> {{noun $v.Patch.Overall.Total "changed line" "changed lines"}} ran under a test. The target is {{trim $v.Patch.Target}}%, {{if $v.Patch.Blocking}}and it blocks{{else if $v.Patch.Until}}informational until {{$v.Patch.Until}}{{else}}informational{{end}}.</p>
   </div>
   {{- end}}
   {{- with .Push}}
@@ -248,7 +248,7 @@
     {{- range .Listings}}{{$f := .F}}
       <tr><td class="file"><a href="#f{{$f.Idx}}">{{if $f.Dir}}<span class="dir">{{$f.Dir}}/</span>{{end}}<span class="fn">{{$f.Base}}</span></a></td>
       <td>{{range $i, $t := $.Toward $f}}{{if $i}}<br>{{end}}{{if $t.Fails}}<span class="fail">{{$t.Label}}</span>{{else}}{{$t.Label}}{{end}}{{end}}</td>
-      <td>{{if .Cells}}<svg class="strip" width="{{.CellsW}}" height="14" viewBox="0 0 {{.CellsW}} 14" role="img" aria-label="{{$f.Ran}} of {{$f.Total}} changed lines ran">
+      <td>{{if .Cells}}<svg class="strip" width="{{.CellsW}}" height="14" viewBox="0 0 {{.CellsW}} 14" role="img" aria-label="{{$f.Ran}} of {{$f.Total}} {{noun $f.Total "changed line" "changed lines"}} ran">
         {{- range .Cells}}<rect class="{{if .Unc}}u{{else}}c{{end}}" x="{{.X}}" y="0" width="5" height="14" rx="1" fill="{{if .Unc}}{{$.Tok "caution"}}{{else}}{{$.Tok "ok"}}{{end}}"/>{{end}}</svg>{{else}}<span class="dir">none coverable</span>{{end}}</td>
       <td class="r">{{$f.Ran}}/{{$f.Total}}</td>
       <td>{{if $f.Uncovered}}{{range $i, $u := $f.Uncovered}}{{if lt $i 6}}{{if $i}}, {{end}}<a class="ln" href="#f{{$f.Idx}}-L{{$u.From}}">{{rlabel $u.Range}}</a>{{end}}{{end}}{{if gt (len $f.Uncovered) 6}}, …{{end}}{{else}}<span class="dir">every changed line ran</span>{{end}}</td></tr>
@@ -262,7 +262,7 @@
   <p class="lgd"><span><i class="i-cov"></i>changed, ran</span><span><i class="i-unc"></i>changed, never ran</span><span><i class="i-old"></i>unchanged, never ran (an older gap)</span><span><i class="i-tgt"></i>the line a link took you to</span></p>
   {{- range .Listings}}{{$f := .F}}
   <details class="lst" id="f{{$f.Idx}}"{{if .Open}} open{{end}}>
-    <summary><span class="path">{{if $f.Dir}}<span class="dir">{{$f.Dir}}/</span>{{end}}<b>{{$f.Base}}</b></span><span class="chip{{if $f.AnyFailing}} fail{{end}}">{{range $i, $t := $.Toward $f}}{{if $i}} and {{end}}{{$t.Label}}{{end}}</span><span class="frac">{{$f.Ran}}/{{$f.Total}} changed lines ran</span></summary>
+    <summary><span class="path">{{if $f.Dir}}<span class="dir">{{$f.Dir}}/</span>{{end}}<b>{{$f.Base}}</b></span><span class="chip{{if $f.AnyFailing}} fail{{end}}">{{range $i, $t := $.Toward $f}}{{if $i}} and {{end}}{{$t.Label}}{{end}}</span><span class="frac">{{$f.Ran}}/{{$f.Total}} {{noun $f.Total "changed line" "changed lines"}} ran</span></summary>
     {{- if not $f.Source}}
     <p class="nosrc">The source is not available (render with --source-root, a checkout of the measured commit, to see the code). Changed lines that never ran: {{range $i, $u := $f.Uncovered}}{{if $i}}, {{end}}{{rlabel $u.Range}}{{end}}{{if not $f.Uncovered}}none{{end}}.</p>
     {{- end}}

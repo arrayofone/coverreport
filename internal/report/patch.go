@@ -112,10 +112,14 @@ func (a *analyzer) patch() Patch {
 			anyFail = true
 			if cfg.Blocking {
 				thr := cfg.PatchTarget
+				noun := "changed lines"
+				if lc.Total == 1 { // a min_lines of 0 or 1 gates a one-line change
+					noun = "changed line"
+				}
 				a.rep.Failures = append(a.rep.Failures, Failure{
 					Scope: FailPatch, Layer: ld.cfg.ID, Measured: pl.Pct, Threshold: &thr,
-					Message: fmt.Sprintf("%s patch coverage is %.2f%% (%d/%d changed lines), below the %s%% target",
-						ld.cfg.ID, lc.Pct(), lc.Covered, lc.Total, trimFloat(cfg.PatchTarget)),
+					Message: fmt.Sprintf("%s patch coverage is %.2f%% (%d/%d %s), below the %s%% target",
+						ld.cfg.ID, lc.Pct(), lc.Covered, lc.Total, noun, trimFloat(cfg.PatchTarget)),
 				})
 			}
 		}

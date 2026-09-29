@@ -202,6 +202,15 @@ diff --git a/apps/web/src/lib/money.ts b/apps/web/src/lib/money.ts
 +  return sign + (Math.abs(cents) / 100).toFixed(2);
 `
 
+// oneLineDiff edits the one line of Classify neither Go run reaches.
+const oneLineDiff = `diff --git a/libs/go/calc/calc.go b/libs/go/calc/calc.go
+--- a/libs/go/calc/calc.go
++++ b/libs/go/calc/calc.go
+@@ -22 +22 @@ func Classify(n int) (string, error) {
+-	return "big", nil
++	return "large", nil
+`
+
 // Endpoints is a small registry: two surfaces, three kinds, every status.
 func Endpoints(t testing.TB, violations ...endpoints.Violation) *endpoints.File {
 	t.Helper()
@@ -310,6 +319,15 @@ func States(t testing.TB) []State {
 			endpoints.Violation{ID: "svc-api:event sum.done", Detail: "added after the freeze and not full in any layer"})
 		r := analyze(t, in{cfg: cfg, floors: fl, pkgs: pk, found: true, diff: "fixture", require: []string{"edge"}, eps: eps})
 		out = append(out, State{Name: "multi", Report: r, SourceDir: src})
+	}
+	// one-line: the smallest change there is, one edited line that no test
+	// reaches, so every count of changed lines on every surface is one (the
+	// state a fixed plural gets wrong), and the patch, under min_lines, is
+	// exempt rather than failing.
+	{
+		cfg := fixtureConfig(t)
+		r := analyze(t, in{cfg: cfg, floors: holding, found: true, diff: oneLineDiff})
+		out = append(out, State{Name: "one-line", Report: r, SourceDir: src})
 	}
 	// large: a change touching 16 files in 8 packages, every file with
 	// lines that never ran, rendered into small budgets so the golden

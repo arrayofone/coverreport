@@ -46,6 +46,7 @@ var tmpl = htmpl.Must(htmpl.New("report").Funcs(htmpl.FuncMap{
 	"signed": view.Signed,
 	"thou":   view.Thousands,
 	"plural": plural,
+	"noun":   noun,
 	"unit":   view.Unit,
 	"ushort": view.UnitShort,
 	"ucount": view.CountShort,
@@ -71,6 +72,23 @@ func plural(n any, one, many string) string {
 		return view.Plural(x, one, many)
 	}
 	return fmt.Sprint(n) + " " + many
+}
+
+// noun is the word plural puts beside n, for a count the markup sets apart
+// from its noun ("<b>3 of 4</b> changed lines") or prints as a fraction
+// ("3/4 changed lines"): the noun agrees with the whole, n.
+func noun(n any, one, many string) string {
+	switch x := n.(type) {
+	case int:
+		if x == 1 {
+			return one
+		}
+	case int64:
+		if x == 1 {
+			return one
+		}
+	}
+	return many
 }
 
 // Render writes report.html.

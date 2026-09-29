@@ -525,6 +525,25 @@ func TestPatchMinLinesBoundary(t *testing.T) {
 	}
 }
 
+// A blocking patch miss says how many changed lines it counted with the noun
+// that count takes: a min_lines of 1 gates a one-line change, and its
+// failure is "(0/1 changed line)", never "(0/1 changed lines)".
+func TestBlockingPatchMessageAgreesWithItsCount(t *testing.T) {
+	root := writeRepo(t, "mode: set\nexample.com/tiny/a.go:1.1,5.2 5 0\n")
+	for _, tc := range []struct {
+		lines []int
+		want  string
+	}{{[]int{1}, "(0/1 changed line)"}, {[]int{1, 2}, "(0/2 changed lines)"}} {
+		cfg := tinyConfig(t)
+		cfg.MinLines, cfg.Blocking = 1, true
+		d := []diff.File{{Path: "a.go", Status: diff.Modified, Added: tc.lines}}
+		r := analyze(t, Input{Root: root, Config: cfg, Diff: d, Now: FixedNow})
+		if len(r.Failures) != 1 || !strings.Contains(r.Failures[0].Message, tc.want) {
+			t.Errorf("lines %v changed: failures %+v, want one whose message has %q", tc.lines, r.Failures, tc.want)
+		}
+	}
+}
+
 // A gauge label too wide for one line under its gauge is a config warning,
 // and the report carries it beside the analysis's own, naming the layer:
 // "<short_label> <longest metric>" over 16 characters warns, 16 does not,

@@ -165,8 +165,8 @@ func (v *View) why(f *File, u URange) (string, string) {
 	if l.Totals[l.Metrics[0]].Floor == nil {
 		holds = "has no floor yet"
 	}
-	return fmt.Sprintf("This does not fail the check: %s %s%s. A test here takes %s to %d of %d changed lines.",
-		l.ShortLabel, holds, patch, f.Base, f.Ran+u.lines(f), f.Total), "informational"
+	return fmt.Sprintf("This does not fail the check: %s %s%s. A test here takes %s to %s of %s.",
+		l.ShortLabel, holds, patch, f.Base, Thousands(f.Ran+u.lines(f)), Plural(f.Total, "changed line", "changed lines")), "informational"
 }
 
 func (u URange) lines(f *File) int64 {
