@@ -113,6 +113,9 @@ func Analyze(in Input) (*Report, error) {
 			RatchetCommand: in.Config.RatchetCommand,
 		},
 	}
+	for _, w := range in.Config.Warnings {
+		a.warn("%s", w)
+	}
 	for _, w := range warns {
 		a.warn("%s", w)
 	}
@@ -292,7 +295,11 @@ func (a *analyzer) loadLayer(l *config.ResolvedLayer) (*layerData, *Layer, error
 		if l.Format == config.FormatLCOV {
 			hint = "check paths.prefix / paths.strip"
 		}
-		a.warn("layer %s: %d file(s) could not be mapped to a repo path and were dropped (e.g. %s); %s", l.ID, len(unmapped), unmapped[0], hint)
+		what := fmt.Sprintf("%d files could not be mapped to a repo path and were dropped", len(unmapped))
+		if len(unmapped) == 1 {
+			what = "1 file could not be mapped to a repo path and was dropped"
+		}
+		a.warn("layer %s: %s (e.g. %s); %s", l.ID, what, unmapped[0], hint)
 	}
 
 	notIncluded := &ScopeExclusion{Kind: ScopeNotIncluded, Counts: map[string]coverage.Count{}}

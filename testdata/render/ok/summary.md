@@ -49,10 +49,10 @@ xychart-beta horizontal
 
 All 8 coverable lines this change adds ran under a test.
 
-### Go unit (logic): 61.54% over 1 packages, most statements without a test first
+### Go unit (logic): 61.54% over 1 package, most statements without a test first
 
 <details>
-<summary>1 packages</summary>
+<summary>1 package</summary>
 
 ```diff
 #  package        floor     now  ±floor           patch   0        50      100           
@@ -61,10 +61,10 @@ All 8 coverable lines this change adds ran under a test.
 
 </details>
 
-### Go SQL adapters (Postgres): 66.67% over 1 packages, most statements without a test first
+### Go SQL adapters (Postgres): 66.67% over 1 package, most statements without a test first
 
 <details>
-<summary>1 packages</summary>
+<summary>1 package</summary>
 
 ```diff
 #  package        floor     now  ±floor           patch   0        50      100           
@@ -73,10 +73,10 @@ All 8 coverable lines this change adds ran under a test.
 
 </details>
 
-### Go unit + Postgres: 62.50% over 1 packages, most statements without a test first
+### Go unit + Postgres: 62.50% over 1 package, most statements without a test first
 
 <details>
-<summary>1 packages</summary>
+<summary>1 package</summary>
 
 ```diff
 #  package        floor     now  ±floor           patch   0        50      100
@@ -85,10 +85,10 @@ All 8 coverable lines this change adds ran under a test.
 
 </details>
 
-### Go e2e: 62.50% over 1 packages, most statements without a test first
+### Go e2e: 62.50% over 1 package, most statements without a test first
 
 <details>
-<summary>1 packages</summary>
+<summary>1 package</summary>
 
 ```diff
 #  package        floor     now  ±floor           patch   0        50      100
@@ -100,7 +100,7 @@ All 8 coverable lines this change adds ran under a test.
 ### Web (vitest): 87.50% over 2 packages, most lines without a test first
 
 <details open>
-<summary>1 packages (1 more at 100% are not listed)</summary>
+<summary>1 package (1 more at 100% is not listed)</summary>
 
 ```diff
 #  package                   floor     now  ±floor           patch   0        50      100           
@@ -109,10 +109,10 @@ All 8 coverable lines this change adds ran under a test.
 
 </details>
 
-### Mobile (flutter): 66.67% over 1 packages, most lines without a test first
+### Mobile (flutter): 66.67% over 1 package, most lines without a test first
 
 <details>
-<summary>1 packages</summary>
+<summary>1 package</summary>
 
 ```diff
 #  package           floor     now  ±floor           patch   0        50      100
@@ -163,7 +163,7 @@ Run `coverreport ratchet` and commit `coverage/floors.json`. These are the entri
 | `apps/web/src/lib/**` | 100.00% | 100.00% | 100.00% | — / — / — | `████████████████████` |
 | `apps/web/src/{components,app}/**` | 66.67% | 50.00% | 50.00% | — / — / — | `█████████████·······` |
 
-### Endpoints fully tested: 2 of 4 routes, 0 of 1 events, 0 of 1 pages, 1 of 1 server actions
+### Endpoints fully tested: 2 of 4 routes, 0 of 1 event, 0 of 1 page, 1 of 1 server action
 
 ```diff
 #  kind                     unit  integration          e2e         best   most missed   
@@ -241,7 +241,7 @@ Most units without a test first: where one test buys the most.
 |:--|:--|--:|
 | `**/*_templ.go` | templ codegen | 2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e |
 | `libs/go/svc/*/main.go` | thin wiring; the e2e lane measures it | 2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e |
-| `apps/web/src/components/ui/**` | vendored shadcn | 1 lines in web |
+| `apps/web/src/components/ui/**` | vendored shadcn | 1 line in web |
 | `apps/mobile/lib/**/*.g.dart` | drift codegen | 2 lines in mobile |
 | `apps/web/src/legacy/**` | deleted last quarter | nothing measured |
 

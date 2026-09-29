@@ -2,15 +2,17 @@ package text
 
 import (
 	"bytes"
-	"flag"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/arrayofone/coverreport/internal/render/rendertest"
 	"github.com/arrayofone/coverreport/internal/report"
 )
 
-var update = flag.Bool("update", false, "rewrite testdata/golden from the current output")
+// update is the renderers' shared -update flag (rendertest registers it):
+// it rewrites testdata/golden from the current output.
+var update = rendertest.Update
 
 // The text renderer reads the golden report.json the report package's own
 // golden test writes, so the two goldens can only move together.
@@ -94,5 +96,19 @@ func (w *failWriter) Write(p []byte) (int, error) {
 func TestWriteErrorIsReturned(t *testing.T) {
 	if err := Render(&failWriter{}, load(t), Options{Detail: true}); err == nil {
 		t.Error("Render swallowed a write error")
+	}
+}
+
+// Every count agrees with its noun ("1 file", "2 files"), and none is
+// hedged as "file(s)".
+func TestCountsAgreeWithTheirNouns(t *testing.T) {
+	for _, detail := range []bool{false, true} {
+		var b bytes.Buffer
+		if err := Render(&b, load(t), Options{Detail: detail}); err != nil {
+			t.Fatal(err)
+		}
+		if bad := rendertest.BadCounts(b.String()); len(bad) > 0 {
+			t.Errorf("detail=%v: %q", detail, bad)
+		}
 	}
 }

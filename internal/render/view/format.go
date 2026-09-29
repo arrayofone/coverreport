@@ -109,7 +109,17 @@ func Unit(metric string, n int64) string {
 	return Plural(n, "line", "lines")
 }
 
-// UnitShort is a metric's unit abbreviation for table cells ("stmts").
+// CountShort is a count with its unit abbreviated, for table cells: "1
+// stmt", "6,539 stmts", "1 line". A count is never printed beside
+// UnitShort, which is a column heading and so always plural ("1 lines").
+func CountShort(metric string, n int64) string {
+	if metric == "statements" {
+		return Plural(n, "stmt", "stmts")
+	}
+	return Unit(metric, n)
+}
+
+// UnitShort is a metric's unit abbreviation for a column heading ("stmts").
 func UnitShort(metric string) string {
 	switch metric {
 	case "statements":

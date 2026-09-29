@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arrayofone/coverreport/internal/endpoints"
 	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
@@ -158,10 +159,10 @@ func packagesSection(v *view.View, t *view.PkgTable) string {
 		open = " open"
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "### %s: %s%% over %d packages, most %s without a test first\n\n", esc(l.Label), view.Pct2(tot.Pct), len(t.Rows), m)
-	fmt.Fprintf(&b, "<details%s>\n<summary>%d packages", open, len(rows))
+	fmt.Fprintf(&b, "### %s: %s%% over %s, most %s without a test first\n\n", esc(l.Label), view.Pct2(tot.Pct), view.Plural(int64(len(t.Rows)), "package", "packages"), m)
+	fmt.Fprintf(&b, "<details%s>\n<summary>%s", open, view.Plural(int64(len(rows)), "package", "packages"))
 	if t.Full > 0 {
-		fmt.Fprintf(&b, " (%d more at 100%% are not listed)", t.Full)
+		fmt.Fprintf(&b, " (%s)", view.Plural(int64(t.Full), "more at 100% is not listed", "more at 100% are not listed"))
 	}
 	fmt.Fprintf(&b, "</summary>\n\n%s\n</details>\n\n", block("diff", pkgBlock(v, rows, false)))
 	return b.String()
@@ -217,7 +218,7 @@ func endpointsSection(v *view.View) string {
 	var b strings.Builder
 	var head []string
 	for _, k := range e.Kinds {
-		head = append(head, fmt.Sprintf("%d of %d %s", k.Best.Full, k.Total, k.Label))
+		head = append(head, fmt.Sprintf("%d of %d %s", k.Best.Full, k.Total, endpoints.KindNoun(k.Key, k.Total)))
 	}
 	fmt.Fprintf(&b, "### Endpoints fully tested: %s\n\n", strings.Join(head, ", "))
 	b.WriteString(block("diff", endpointsBlock(v, e.Kinds, "kind", true)))
@@ -267,7 +268,7 @@ func lowestSection(v *view.View) string {
 		fmt.Fprintf(&b, "<details>\n<summary>%s</summary>\n\n| file | ran | of | |\n|:--|--:|--:|:--|\n", esc(t.Layer.Label))
 		for _, f := range t.Files {
 			c := f.Counts[m]
-			fmt.Fprintf(&b, "| %s | %s | %s %s | %s |\n", code(f.Path), view.Thousands(c.Covered), view.Thousands(c.Total), view.UnitShort(m),
+			fmt.Fprintf(&b, "| %s | %s | %s | %s |\n", code(f.Path), view.Thousands(c.Covered), view.CountShort(m, c.Total),
 				code(view.Meter(f.Pct, nil, false)))
 		}
 		b.WriteString("\n</details>\n")

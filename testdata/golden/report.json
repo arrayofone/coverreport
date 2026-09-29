@@ -1402,7 +1402,7 @@
   ],
   "warnings": [
     "coverage/floors.json: layers.retired names no configured layer; not checked",
-    "layer mobile: 1 file(s) could not be mapped to a repo path and were dropped (e.g. /opt/flutter/packages/flutter/lib/src/widgets/framework.dart); check paths.prefix / paths.strip"
+    "layer mobile: 1 file could not be mapped to a repo path and was dropped (e.g. /opt/flutter/packages/flutter/lib/src/widgets/framework.dart); check paths.prefix / paths.strip"
   ],
   "ratchet_command": "coverreport ratchet"
 }

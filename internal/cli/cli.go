@@ -30,6 +30,7 @@ import (
 	"github.com/arrayofone/coverreport/internal/exclude"
 	"github.com/arrayofone/coverreport/internal/floors"
 	"github.com/arrayofone/coverreport/internal/render/text"
+	"github.com/arrayofone/coverreport/internal/render/view"
 	"github.com/arrayofone/coverreport/internal/report"
 )
 
@@ -463,10 +464,10 @@ func runCheck(args []string, env Env) (int, error) {
 		return ExitError, err
 	}
 	if r.Status == report.StatusPass {
-		fmt.Fprintf(env.Stdout, "coverreport: pass (%d layer(s); patch %s)\n", len(r.Layers), r.Patch.Status)
+		fmt.Fprintf(env.Stdout, "coverreport: pass (%s; patch %s)\n", view.Plural(int64(len(r.Layers)), "layer", "layers"), r.Patch.Status)
 		return ExitOK, nil
 	}
-	fmt.Fprintf(env.Stdout, "coverreport: FAIL, %d gate(s) failed:\n", len(r.Failures))
+	fmt.Fprintf(env.Stdout, "coverreport: FAIL, %s failed:\n", view.Plural(int64(len(r.Failures)), "gate", "gates"))
 	for _, f := range r.Failures {
 		fmt.Fprintf(env.Stdout, "  - %s\n", f.Message)
 	}
@@ -507,7 +508,7 @@ func runRatchet(args []string, env Env) error {
 		fmt.Fprintf(env.Stdout, "%s %s %s: %s -> %s\n", ch.Scope, ch.Layer, strings.TrimSpace(ch.Key+" "+ch.Metric), from, floors.FormatFloor(ch.To))
 	}
 	if pruned > 0 {
-		fmt.Fprintf(env.Stdout, "pruned %d stale floor entr(ies)\n", pruned)
+		fmt.Fprintf(env.Stdout, "pruned %s\n", view.Plural(int64(pruned), "stale floor entry", "stale floor entries"))
 	}
 	if len(changes) == 0 && pruned == 0 {
 		fmt.Fprintln(env.Stdout, "coverreport: no floor can rise; floors unchanged")

@@ -170,7 +170,7 @@ from both.
 | `packages.min_size` | int >= 0 | `0` | directories with fewer primary-metric units than this get no NEW floor (existing floors are still checked) |
 | `packages.targets` | object | `{}` | a target applied to every directory row |
 | `globs[]` | array | `[]` | aggregate rows: `{ "glob": ..., "label"?: ..., "targets"?: {...} }`. Each is always reported and, when measured, ratcheted |
-| `short_label` | string, at most 16 characters | the id, dashes as spaces | the name in tight places: a gauge, the 13-column HUD cell (`go unit+pg`). A layer with several metrics shows as `<short_label> <metric>` (`app lines`, `app branches`) |
+| `short_label` | string, at most 16 characters | the id, dashes as spaces | the name in tight places: a gauge, the 13-column HUD cell (`go unit+pg`). A layer with several metrics shows as `<short_label> <metric>` (`app lines`, `app branches`); one line under a gauge holds 16 characters, so a longer one wraps onto two, and the config warns |
 | `group` | string | the id up to its first dash | adjacent layers with the same group sit under one heading on the page (`go-unit`, `go-sql`, `go-live` and `go-e2e` all default to `go`) |
 | `treemap` | bool | `false` | draw this layer's packages as the page's treemap. With no layer set, the measured gated layer with the largest primary-metric total and at least two packages is drawn |
 
@@ -183,6 +183,11 @@ glob row listed twice; a `label`, `short_label` or `group` containing `|`, a
 backtick, `<`, `>` or a newline; a `short_label` over 16 characters; a
 `patch.informational_until` that is not a date; a `brand` that fails the rules
 below.
+
+Warnings (never fatal; they join the report's `warnings`): a layer with
+several metrics whose `<short_label> <longest metric>` is over 16 characters,
+named with the short_label length that would fit (`integration functions`
+wraps under its gauge; `integ functions` does not).
 
 ### Brand
 
@@ -830,6 +835,7 @@ geometry is attributes and whose colours are classes, with the dark tokens
 repeated as presentation attributes so a CSP that blocks inline styles still
 leaves readable instruments. Every changed line has an id, `f<file>-L<line>`
 (`#f3-L120`); the annotations link there. Light and dark follow
-`prefers-color-scheme`; the one animation (the gauges' power-on sweep) is off
-under `prefers-reduced-motion`.
+`prefers-color-scheme`. Nothing animates: a tape's height is its reading, and
+a capture of the page (a screenshot, a PDF) records the first frame, so the
+first frame is the picture.
 

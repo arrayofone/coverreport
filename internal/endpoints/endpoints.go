@@ -325,3 +325,14 @@ func KindLabel(kind string) string {
 	}
 	return kind + "s"
 }
+
+// KindNoun is the display name for n endpoints of a kind: "1 route" reads
+// as a count, "1 routes" does not. Every label above is its singular plus
+// an "s".
+func KindNoun(kind string, n int) string {
+	l := KindLabel(kind)
+	if n == 1 {
+		return l[:len(l)-1]
+	}
+	return l
+}

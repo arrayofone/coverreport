@@ -329,7 +329,7 @@ func TestStaleFloorsAndWarnings(t *testing.T) {
 	joined := strings.Join(r.Warnings, "\n")
 	for _, want := range []string{
 		"layers.retired names no configured layer",
-		"layer mobile: 1 file(s) could not be mapped",
+		"layer mobile: 1 file could not be mapped to a repo path and was dropped",
 	} {
 		if !strings.Contains(joined, want) {
 			t.Errorf("warnings lack %q:\n%s", want, joined)
@@ -521,6 +521,43 @@ func TestPatchMinLinesBoundary(t *testing.T) {
 		r := analyze(t, Input{Root: root, Config: cfg, Diff: d, Now: FixedNow})
 		if got := r.Patch.Layers[0].Status; got != tc.want {
 			t.Errorf("%d changed lines with min_lines 5: %s, want %s", len(tc.lines), got, tc.want)
+		}
+	}
+}
+
+// A gauge label too wide for one line under its gauge is a config warning,
+// and the report carries it beside the analysis's own, naming the layer:
+// "<short_label> <longest metric>" over 16 characters warns, 16 does not,
+// and a one-metric layer's label is its short_label alone.
+func TestGaugeLabelWarningReachesTheReport(t *testing.T) {
+	root := t.TempDir()
+	for _, tc := range []struct {
+		short, metrics, want string
+	}{
+		{"", `["lines","branches","functions"]`, `config: layer integration: its gauge label "integration functions" is 21 characters and one line under a gauge fits 16, so the report page wraps it onto two; a short_label of at most 6 characters keeps it on one`},
+		{"integra", `["lines","functions"]`, `config: layer integration: its gauge label "integra functions" is 17 characters`},
+		{"integr", `["lines","branches","functions"]`, ""},
+		{"integ", `["lines","branches"]`, ""},
+		{"", `["lines"]`, ""},
+	} {
+		short := ""
+		if tc.short != "" {
+			short = `,"short_label":"` + tc.short + `"`
+		}
+		cfg, err := config.Parse([]byte(`{"version":1,"layers":[{"id":"integration","format":"lcov","inputs":["lcov.info"],"metrics":` + tc.metrics + short + `}]}`))
+		must(t, err)
+		r := analyze(t, Input{Root: root, Config: cfg, Now: FixedNow})
+		var got []string
+		for _, w := range r.Warnings {
+			if strings.Contains(w, "gauge label") {
+				got = append(got, w)
+			}
+		}
+		switch {
+		case tc.want == "" && len(got) > 0:
+			t.Errorf("short_label %q, metrics %s: unexpected %q", tc.short, tc.metrics, got)
+		case tc.want != "" && (len(got) != 1 || !strings.HasPrefix(got[0], tc.want)):
+			t.Errorf("short_label %q, metrics %s: warnings %q, want one starting %q", tc.short, tc.metrics, r.Warnings, tc.want)
 		}
 	}
 }

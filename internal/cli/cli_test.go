@@ -124,12 +124,12 @@ func TestExitCodes(t *testing.T) {
 
 func TestCheckWithSavedReport(t *testing.T) {
 	r := invoke(t, nil, nil, "check", "--root", repo, "--report", golden)
-	if r.code != ExitFailed || !strings.Contains(r.stdout, "1 gate(s) failed") {
+	if r.code != ExitFailed || !strings.Contains(r.stdout, "1 gate failed") {
 		t.Errorf("exit %d: %s %s", r.code, r.stdout, r.stderr)
 	}
 	// --require applies to a saved report too.
 	r = invoke(t, nil, nil, "check", "--root", repo, "--report", golden, "--require", "edge")
-	if r.code != ExitFailed || !strings.Contains(r.stdout, "2 gate(s) failed") {
+	if r.code != ExitFailed || !strings.Contains(r.stdout, "2 gates failed") {
 		t.Errorf("exit %d: %s %s", r.code, r.stdout, r.stderr)
 	}
 }

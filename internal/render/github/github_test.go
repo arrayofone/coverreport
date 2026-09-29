@@ -76,7 +76,7 @@ func TestEndpointRows(t *testing.T) {
 		t.Error("the warn state has no registry but renders endpoint rows")
 	}
 	ok := Comment(vs["ok"], Options{})
-	for _, want := range []string{"+  ok    routes", "2/4", "<summary>Endpoints fully tested: 2 of 4 routes, 0 of 1 events, 0 of 1 pages, 1 of 1 server actions</summary>"} {
+	for _, want := range []string{"+  ok    routes", "2/4", "<summary>Endpoints fully tested: 2 of 4 routes, 0 of 1 event, 0 of 1 page, 1 of 1 server action</summary>"} {
 		if !strings.Contains(ok, want) {
 			t.Errorf("ok comment lacks %q", want)
 		}
@@ -242,6 +242,18 @@ func TestSingleFailureAlerts(t *testing.T) {
 		for _, w := range lines {
 			if !strings.Contains(c, w) {
 				t.Errorf("%s: the alert lacks %q\n%s", scope, w, c[:min(len(c), 900)])
+			}
+		}
+	}
+}
+
+// Every count in the comment, the summary and the annotations agrees with
+// its noun, in every state: "1 package", "1 line", "0 of 1 page".
+func TestCountsAgreeWithTheirNouns(t *testing.T) {
+	for name, v := range states(t) {
+		for surface, text := range map[string]string{"comment": Comment(v, Options{}), "summary": Summary(v, Options{}), "annotations": Annotations(v)} {
+			if bad := rendertest.BadCounts(text); len(bad) > 0 {
+				t.Errorf("%s %s: %q", name, surface, bad)
 			}
 		}
 	}

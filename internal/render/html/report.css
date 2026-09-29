@@ -139,7 +139,7 @@ section { margin-top: 40px; }
 .g .ro-v { fill: var(--ink); font: 500 19px var(--mono); letter-spacing: -0.02em; }
 .g .mg { fill: var(--ink-soft); font: 400 10.5px var(--mono); }
 .g .trk { fill: var(--bg); stroke: var(--bezel-2); }
-.g .fil { fill: var(--fill); transform-box: fill-box; transform-origin: 50% 100%; }
+.g .fil { fill: var(--fill); }
 .g .tk { stroke: var(--ink-ghost); }
 .g .tl { fill: var(--ink-ghost); font: 400 9px var(--mono); }
 .g .bc { fill: var(--caution); opacity: 0.85; }
@@ -166,16 +166,11 @@ section { margin-top: 40px; }
 .g-notrun .ro-v { fill: var(--ink-ghost); }
 .hatch-line { fill: var(--ink-soft); }
 
-/* The one orchestrated moment: a power-on sweep of every tape. */
-@keyframes sweep { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-.g .fil { animation: sweep 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.g.d1 .fil { animation-delay: 50ms; } .g.d2 .fil { animation-delay: 100ms; }
-.g.d3 .fil { animation-delay: 150ms; } .g.d4 .fil { animation-delay: 200ms; }
-.g.d5 .fil { animation-delay: 250ms; } .g.d6 .fil { animation-delay: 300ms; }
-.g.d7 .fil { animation-delay: 350ms; } .g.d8 .fil { animation-delay: 400ms; }
-.g.d9 .fil { animation-delay: 450ms; } .g.d10 .fil { animation-delay: 500ms; }
-.g.d11 .fil { animation-delay: 550ms; }
-@media (prefers-reduced-motion: reduce) { .g .fil { animation: none; } }
+/* Nothing on this page moves. A tape's height is its reading, and a
+   capture of the page (a headless screenshot, a PDF, a renderer that has
+   paused) records the first frame, so the first frame has to be the
+   picture: a tape sweeping up from zero, caught early, reads as a wrong
+   number beside a readout showing the right one. */
 
 details.table { margin-top: 14px; border-top: 1px solid var(--bezel); padding-top: 10px; }
 details > summary { cursor: pointer; color: var(--ink-soft); list-style-position: outside; }
@@ -196,6 +191,14 @@ details[open] > summary { color: var(--ink); }
 .m-h .sq { flex: none; width: 9px; height: 9px; border-radius: 1px; background: currentColor; transform: translateY(-1px); }
 .lead { flex: 1; min-width: 16px; border-bottom: 1px dotted currentColor; opacity: 0.45; transform: translateY(-4px); }
 .m-v { white-space: nowrap; }
+/* A message's label keeps its line: it takes its own width, up to 60% of
+   the row (a longer one, a glob's path, wraps inside that), and never
+   shrinks beside a long value, which would stack it a word per line. A list
+   value (the "not in play here" layers) takes the rest of the row and wraps
+   between its items. */
+.m-l { flex: none; max-width: 60%; overflow-wrap: anywhere; }
+.m-list { white-space: normal; text-align: right; }
+.m-list > span { white-space: nowrap; }
 .m-warning .m-h { color: var(--warning); }
 .m-caution .m-h { color: var(--caution); }
 .m-target .m-h { color: var(--target); }
@@ -395,6 +398,8 @@ footer a { color: var(--ink-soft); }
   .m-h, .acts li { flex-wrap: wrap; }
   .m-h .lead, .acts .lead { display: none; }
   .m-v { margin-left: 19px; flex-basis: 100%; }
+  .m-l { max-width: calc(100% - 19px); }
+  .m-list { text-align: left; }
   .acts li span:last-child { color: var(--ink-soft); }
 }
 @media print {

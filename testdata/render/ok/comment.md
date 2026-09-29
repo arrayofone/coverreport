@@ -71,7 +71,7 @@ Run `coverreport ratchet` and commit `coverage/floors.json`. These are the entri
 </details>
 
 <details>
-<summary>Endpoints fully tested: 2 of 4 routes, 0 of 1 events, 0 of 1 pages, 1 of 1 server actions</summary>
+<summary>Endpoints fully tested: 2 of 4 routes, 0 of 1 event, 0 of 1 page, 1 of 1 server action</summary>
 
 ```diff
 #  kind                     unit  integration          e2e         best   most missed   
@@ -92,7 +92,7 @@ An endpoint is fully tested when some layer proves the happy path and every clas
 |:--|:--|--:|
 | `**/*_templ.go` | templ codegen | 2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e |
 | `libs/go/svc/*/main.go` | thin wiring; the e2e lane measures it | 2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e |
-| `apps/web/src/components/ui/**` | vendored shadcn | 1 lines in web |
+| `apps/web/src/components/ui/**` | vendored shadcn | 1 line in web |
 | `apps/mobile/lib/**/*.g.dart` | drift codegen | 2 lines in mobile |
 | `apps/web/src/legacy/**` | deleted last quarter | nothing measured |
 

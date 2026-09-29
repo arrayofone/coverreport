@@ -131,8 +131,8 @@ func (p *printer) patch(r *report.Report) {
 	}
 	p.f("Patch: %s overall (%d/%d), target %s%%, %s, %s\n", pct(pt.Overall.Pct), pt.Overall.Covered, pt.Overall.Total, trim(pt.Target), mode, pt.Status)
 	if d := pt.Diff; d != nil {
-		p.f("  diff: %d file(s), %d added line(s), %d deleted, %d renamed, %d binary, %d unmeasured\n",
-			d.Files, d.AddedLines, len(d.Deleted), len(d.Renamed), len(d.Binary), len(d.Unmeasured))
+		p.f("  diff: %s, %s, %d deleted, %d renamed, %d binary, %d unmeasured\n",
+			plural(d.Files, "file", "files"), plural(d.AddedLines, "added line", "added lines"), len(d.Deleted), len(d.Renamed), len(d.Binary), len(d.Unmeasured))
 	}
 	for _, l := range pt.Layers {
 		if l.Status == report.StatusNotMeasured {
@@ -207,7 +207,7 @@ func (p *printer) ratchet(r *report.Report) {
 	if len(r.Ratchet) == 0 {
 		return
 	}
-	p.f("Ratchet (%d floor(s) can rise or be created; coverreport ratchet writes them):\n", len(r.Ratchet))
+	p.f("Ratchet (%s; coverreport ratchet writes them):\n", plural(len(r.Ratchet), "floor can rise or be created", "floors can rise or be created"))
 	p.table(func(tw *tabwriter.Writer) {
 		for _, c := range r.Ratchet {
 			from := "new"
@@ -229,7 +229,7 @@ func (p *printer) exclusions(r *report.Report) {
 		for _, e := range r.Exclusions {
 			var sizes []string
 			for _, s := range e.Layers {
-				sizes = append(sizes, fmt.Sprintf("%s: %d file(s) %s", s.Layer, s.Files, countsStr(s.Counts)))
+				sizes = append(sizes, fmt.Sprintf("%s: %s %s", s.Layer, plural(s.Files, "file", "files"), countsStr(s.Counts)))
 			}
 			if len(sizes) == 0 {
 				sizes = []string{"matches nothing measured"}
@@ -247,7 +247,7 @@ func (p *printer) exclusions(r *report.Report) {
 			if s.Kind == report.ScopeExcluded {
 				what = "layer exclude " + s.Glob
 			}
-			p.f("  %s scope: %s: %d file(s) %s\n", l.ID, what, s.Files, countsStr(s.Counts))
+			p.f("  %s scope: %s: %s %s\n", l.ID, what, plural(s.Files, "file", "files"), countsStr(s.Counts))
 		}
 	}
 }
@@ -338,7 +338,19 @@ func countsStr(c map[string]coverage.Count) string {
 	sort.Strings(ks)
 	parts := make([]string, 0, len(ks))
 	for _, k := range ks {
-		parts = append(parts, fmt.Sprintf("%d %s", c[k].Total, k))
+		parts = append(parts, plural(c[k].Total, singular[k], k))
 	}
 	return strings.Join(parts, ", ")
+}
+
+// singular names one unit of each metric, for plural.
+var singular = map[string]string{"statements": "statement", "lines": "line", "branches": "branch", "functions": "function"}
+
+// plural is "1 file" or "2 files": a count is never printed beside a
+// noun that disagrees with it, or hedged as "file(s)".
+func plural[N int | int64](n N, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
 }

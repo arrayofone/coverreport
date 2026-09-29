@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/arrayofone/coverreport/internal/coverage"
+	"github.com/arrayofone/coverreport/internal/endpoints"
 	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
@@ -59,8 +60,8 @@ func Comment(v *view.View, o Options) string {
 		} else {
 			other++
 		}
-		add(name, prio, fmt.Sprintf("<details%s>\n<summary><code>%s</code> %s: %d of %d changed lines never ran</summary>\n\n%s\n</details>\n",
-			open, htmlEsc(f.Base), view.RangesLabel(uranges(f.Uncovered)), f.Missing(), f.Total, block("diff", s)))
+		add(name, prio, fmt.Sprintf("<details%s>\n<summary><code>%s</code> %s: %d of %s never ran</summary>\n\n%s\n</details>\n",
+			open, htmlEsc(f.Base), view.RangesLabel(uranges(f.Uncovered)), f.Missing(), view.Plural(f.Total, "changed line", "changed lines"), block("diff", s)))
 	}
 	if failing+other > 0 {
 		add("spacer", 0, "\n")
@@ -221,7 +222,7 @@ func coverLinks(v *view.View, p *view.Problem) string {
 	var parts []string
 	for i, f := range p.Files {
 		if i == 4 {
-			parts = append(parts, fmt.Sprintf("%d more files", len(p.Files)-4))
+			parts = append(parts, view.Plural(int64(len(p.Files)-4), "more file", "more files"))
 			break
 		}
 		rs := uranges(f.Uncovered)
@@ -271,7 +272,7 @@ func uncoveredTable(v *view.View, maxRows int, h string) string {
 	b.WriteString("| file | counts toward | changed lines | ran | no test yet |\n|:--|:--|:--|--:|:--|\n")
 	for i, f := range files {
 		if i == maxRows {
-			fmt.Fprintf(&b, "| … and %d more files | | | | the report page lists every one |\n", len(files)-maxRows)
+			fmt.Fprintf(&b, "| … and %s | | | | the report page lists every one |\n", view.Plural(int64(len(files)-maxRows), "more file", "more files"))
 			break
 		}
 		name := link(code(f.Base), v.Links.Blob(f.Path))
@@ -368,7 +369,7 @@ func endpointsDetails(v *view.View, wide bool) string {
 	}
 	var head []string
 	for _, k := range e.Kinds {
-		head = append(head, fmt.Sprintf("%d of %d %s", k.Best.Full, k.Total, k.Label))
+		head = append(head, fmt.Sprintf("%d of %d %s", k.Best.Full, k.Total, endpoints.KindNoun(k.Key, k.Total)))
 	}
 	open := ""
 	if len(e.Violations) > 0 {
@@ -400,7 +401,7 @@ func endpointsDetails(v *view.View, wide bool) string {
 }
 
 func sizeText(s view.Size) string {
-	return fmt.Sprintf("%s %s", view.Thousands(s.N), view.UnitShort(s.Metric))
+	return view.CountShort(s.Metric, s.N)
 }
 
 // opener starts a collapsed section in the comment, or a heading in the
@@ -479,7 +480,7 @@ func measuredDetails(v *view.View, heading bool) string {
 		fmt.Fprintf(&b, "| %s | %s | %s |\n", esc(l.ShortLabel), cell(how), strings.Join(in, "<br>"))
 	}
 	if d := v.R.Patch.Diff; d != nil {
-		fmt.Fprintf(&b, "| patch | the diff against the base: %d files, %s added | |\n", d.Files, view.Plural(int64(d.AddedLines), "line", "lines"))
+		fmt.Fprintf(&b, "| patch | the diff against the base: %s, %s added | |\n", view.Plural(int64(d.Files), "file", "files"), view.Plural(int64(d.AddedLines), "line", "lines"))
 	}
 	b.WriteString(closer(heading))
 	return b.String()

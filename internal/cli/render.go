@@ -88,8 +88,8 @@ func runRender(args []string, env Env) error {
 			return err
 		}
 	}
-	fmt.Fprintf(env.Stdout, "coverreport: %s (%s); wrote %s, %s, %s (%d annotations), %s (%d KB)\n", v.Verdict, v.Heading,
-		CommentFile, SummaryFile, AnnotationsFile, len(v.Annotations), HTMLFile, (page.Len()+1023)/1024)
+	fmt.Fprintf(env.Stdout, "coverreport: %s (%s); wrote %s, %s, %s (%s), %s (%d KB)\n", v.Verdict, v.Heading,
+		CommentFile, SummaryFile, AnnotationsFile, view.Plural(int64(len(v.Annotations)), "annotation", "annotations"), HTMLFile, (page.Len()+1023)/1024)
 	return nil
 }
 
@@ -195,7 +195,7 @@ func runComment(args []string, env Env) error {
 		fmt.Fprintf(env.Stdout, "coverreport: updated %s\n", res.Comment.HTMLURL)
 	}
 	if res.Duplicates > 0 {
-		fmt.Fprintf(env.Stderr, "coverreport: %d more comment(s) carry the same marker; the oldest was updated and the rest left alone\n", res.Duplicates)
+		fmt.Fprintf(env.Stderr, "coverreport: %s the same marker; the oldest was updated and the rest left alone\n", view.Plural(int64(res.Duplicates), "more comment carries", "more comments carry"))
 	}
 	if *prevOut != "" {
 		return os.WriteFile(*prevOut, []byte(res.Previous), 0o644)

@@ -131,3 +131,22 @@ func TestPresentationKeys(t *testing.T) {
 		}
 	}
 }
+
+// A config that works but gives a gauge a label too wide for one line
+// resolves with a warning naming the layer; the fixture has none.
+func TestGaugeLabelWarning(t *testing.T) {
+	r, err := Load("../../testdata/repo/coverage/config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r.Warnings) != 0 {
+		t.Errorf("fixture warns: %q", r.Warnings)
+	}
+	r, err = Parse([]byte(`{"version":1,"layers":[{"id":"integration","format":"lcov","inputs":["x"],"metrics":["lines","branches"]}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r.Warnings) != 1 || !strings.HasPrefix(r.Warnings[0], `config: layer integration: its gauge label "integration branches" is 20 characters`) {
+		t.Errorf("warnings = %q", r.Warnings)
+	}
+}

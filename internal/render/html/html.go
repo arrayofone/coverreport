@@ -25,6 +25,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arrayofone/coverreport/internal/config"
+	"github.com/arrayofone/coverreport/internal/endpoints"
 	"github.com/arrayofone/coverreport/internal/render/view"
 )
 
@@ -46,6 +48,8 @@ var tmpl = htmpl.Must(htmpl.New("report").Funcs(htmpl.FuncMap{
 	"plural": plural,
 	"unit":   view.Unit,
 	"ushort": view.UnitShort,
+	"ucount": view.CountShort,
+	"kind":   endpoints.KindNoun,
 	"short7": view.Short7,
 	"rlabel": view.RangeLabel,
 	"hl":     highlight,
@@ -56,7 +60,6 @@ var tmpl = htmpl.Must(htmpl.New("report").Funcs(htmpl.FuncMap{
 	"join":   strings.Join,
 	"addf":   func(a, b float64) float64 { return a + b },
 	"sub":    func(a, b int64) int64 { return a - b },
-	"int64":  func(n int) int64 { return int64(n) },
 }).Parse(pageTemplate))
 
 // plural is view.Plural for any integer the template holds.
@@ -113,12 +116,39 @@ type page struct {
 // (the fallback when the stylesheet cannot apply).
 func (p *page) Tok(name string) string { return p.tok[name] }
 
+// refPart is one piece of the header's subline: the commit (SHA and the
+// base it merges into, or the base alone), or a plain Text part (the push,
+// the time).
+type refPart struct {
+	SHA, BaseRef, Base string
+	Text               string
+}
+
+// Refs are the subline's parts, only those the metadata has, so the
+// template joins them and never leads with a separator: a local run knows
+// no repository and no commit, and its subline is the time alone ("03:39
+// UTC, Sep 29", never ", 03:39 UTC, Sep 29").
+func (p *page) Refs() []refPart {
+	v, m := p.V, p.V.R.Metadata
+	var out []refPart
+	if m.SHA != "" || m.Base != "" {
+		out = append(out, refPart{SHA: m.SHA, BaseRef: m.BaseRef, Base: m.Base})
+	}
+	if v.PushNo > 0 {
+		out = append(out, refPart{Text: fmt.Sprintf("push %d", v.PushNo)})
+	}
+	if !v.At.IsZero() {
+		out = append(out, refPart{Text: v.At.UTC().Format("15:04 UTC, Jan 2")})
+	}
+	return out
+}
+
 func newPage(v *view.View) *page {
 	p := &page{V: v, CSS: htmpl.CSS(CSS(v)), tok: v.Brand.Dark}
 	for _, g := range v.Groups {
 		gg := gaugeGroup{Name: g.Name}
 		for _, r := range g.Rows {
-			gg.Gauges = append(gg.Gauges, gauge{Row: r, V: v})
+			gg.Gauges = append(gg.Gauges, newGauge(r, v))
 		}
 		p.Groups = append(p.Groups, gg)
 	}
@@ -138,10 +168,73 @@ type gaugeGroup struct {
 }
 
 // gauge is one vertical tape. Scale: 0 at y=250, 100 at y=70 (1.8 px per
-// point).
+// point). The tape is drawn at its reading and stays there: the first frame
+// is the picture (see the stylesheet's note on motion).
 type gauge struct {
 	*view.Row
 	V *view.View
+	// Lines is the label, one line or two (labelLines); Cut is set when
+	// even two lines could not hold it and it ends in an ellipsis.
+	Lines []string
+	Cut   bool
+}
+
+func newGauge(r *view.Row, v *view.View) gauge {
+	g := gauge{Row: r, V: v}
+	g.Lines, g.Cut = labelLines(r.Label, config.GaugeLabelChars)
+	return g
+}
+
+// labelLines fits a gauge's label to its width, n characters a line: one
+// line when it fits, else two, broken between words (a config-valid label,
+// "<short_label> <metric>" with a short_label of at most n, always breaks
+// between the two), and cut with an ellipsis only when a word alone is
+// wider than the gauge, which only a report written without the config's
+// checks can hold. One centred line whatever the length would run a label
+// into its neighbour's: "integration lines" into "integration branches".
+func labelLines(s string, n int) ([]string, bool) {
+	if view.Runes(s) <= n {
+		return []string{s}, false
+	}
+	// The first line takes as many words as fit (always one), the second
+	// the rest.
+	words := strings.Fields(s)
+	first, i := words[0], 1
+	for ; i < len(words) && view.Runes(first)+1+view.Runes(words[i]) <= n; i++ {
+		first += " " + words[i]
+	}
+	lines := []string{first}
+	if i < len(words) {
+		lines = append(lines, strings.Join(words[i:], " "))
+	}
+	cut := false
+	for k, l := range lines {
+		if view.Runes(l) > n {
+			lines[k], cut = view.Cut(l, n), true
+		}
+	}
+	return lines, cut
+}
+
+// labelGap is the space one more label line takes: the label's lines, the
+// foot under them and the figure's height all move down by it.
+const labelGap = 13
+
+func (g gauge) extra() float64 { return float64(labelGap * (len(g.Lines) - 1)) }
+
+// Height is the figure's viewBox height.
+func (g gauge) Height() float64 { return 304 + g.extra() }
+
+// LabelY and FootY place the i-th line of the label and of the foot.
+func (g gauge) LabelY(i int) float64 { return 272 + float64(labelGap*i) }
+func (g gauge) FootY(i int) float64  { return 288 + 13*float64(i) + g.extra() }
+
+// Title is the whole label when the figure had to cut it, for the tooltip.
+func (g gauge) Title() string {
+	if g.Cut {
+		return g.Label
+	}
+	return ""
 }
 
 func y(v float64) float64 { return 250 - 1.8*math.Max(0, math.Min(100, v)) }
@@ -175,16 +268,19 @@ func (g gauge) BandH() float64 {
 }
 func (g gauge) OkH() float64 { return y(*g.Target) - 70 }
 
-// Class is the figure's state classes.
+// Class is the figure's state classes; g-long sets the smaller label size,
+// which a line over 12 characters needs.
 func (g gauge) Class() string {
 	c := "g g-" + g.State
 	if g.Met() && g.State != view.StateFail {
 		c += " g-met"
 	}
-	if len([]rune(g.Label)) > 12 {
-		c += " g-long"
+	for _, l := range g.Lines {
+		if view.Runes(l) > 12 {
+			return c + " g-long"
+		}
 	}
-	return c + fmt.Sprintf(" d%d", min(g.Index, 11))
+	return c
 }
 
 // Margin is the line under the readout.

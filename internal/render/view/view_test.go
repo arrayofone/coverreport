@@ -394,3 +394,42 @@ func TestEndpointKind(t *testing.T) {
 		}
 	}
 }
+
+// The layers heading counts rows by state, and its one verb agrees with
+// the count: "1 holds", "2 hold".
+func TestStateCountsAgreeWithTheirCounts(t *testing.T) {
+	v := &View{R: &report.Report{}}
+	for _, tc := range []struct {
+		states []string
+		want   string
+	}{
+		{[]string{StateOK, StateFail}, "1 holds, 1 below floor"},
+		{[]string{StateOK, StateOK, StateNotRun}, "2 hold, 1 not run"},
+		{[]string{StateNew, StateNew, StateNew}, "3 without a floor"},
+	} {
+		v.Rows = nil
+		for _, s := range tc.states {
+			v.Rows = append(v.Rows, &Row{State: s})
+		}
+		if got := v.StateCounts(); got != tc.want {
+			t.Errorf("%v: %q, want %q", tc.states, got, tc.want)
+		}
+	}
+}
+
+// A count in a table cell carries its unit in the count's number: "1
+// stmt", "6,539 stmts", "1 branch", never "1 lines".
+func TestCountShort(t *testing.T) {
+	for _, tc := range []struct {
+		metric string
+		n      int64
+		want   string
+	}{
+		{"statements", 1, "1 stmt"}, {"statements", 6539, "6,539 stmts"}, {"lines", 1, "1 line"}, {"lines", 0, "0 lines"},
+		{"branches", 1, "1 branch"}, {"functions", 2, "2 functions"},
+	} {
+		if got := CountShort(tc.metric, tc.n); got != tc.want {
+			t.Errorf("CountShort(%s, %d) = %q, want %q", tc.metric, tc.n, got, tc.want)
+		}
+	}
+}

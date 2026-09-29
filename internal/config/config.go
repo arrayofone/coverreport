@@ -16,6 +16,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/arrayofone/coverreport/internal/brand"
 	"github.com/arrayofone/coverreport/internal/coverage"
@@ -36,6 +37,13 @@ const (
 	// DefaultRatchetCommand is what the surfaces tell a reader to run.
 	DefaultRatchetCommand = "coverreport ratchet"
 )
+
+// GaugeLabelChars is how many characters of a label fit one line under a
+// report page gauge (at its smaller label size, in any common monospace
+// font) without reaching the next gauge's label. A short_label may be no
+// longer; a layer with several metrics labels each gauge "<short_label>
+// <metric>", and a label over this wraps onto a second line.
+const GaugeLabelChars = 16
 
 // Formats.
 const (
@@ -136,6 +144,9 @@ type Resolved struct {
 	Layers             []*ResolvedLayer
 	Brand              *brand.Config
 	RatchetCommand     string
+	// Warnings are things the config says that work but are probably
+	// not what was meant; the report carries them with its own.
+	Warnings []string
 }
 
 // ResolvedLayer is a validated layer.
@@ -278,8 +289,36 @@ func (c *Config) Resolve() (*Resolved, error) {
 		}
 		seen[l.ID] = true
 		r.Layers = append(r.Layers, l)
+		if w := l.gaugeLabelWarning(); w != "" {
+			r.Warnings = append(r.Warnings, w)
+		}
 	}
 	return r, nil
+}
+
+// gaugeLabelWarning is non-empty when one of the layer's gauge labels,
+// "<short_label> <metric>", is too wide for one line under its gauge. The
+// page copes (the label wraps onto a second line), but those gauges then
+// stand taller than their neighbours, and a shorter short_label is almost
+// always what was meant: "integration branches" wraps, "integ branches"
+// does not.
+func (l *ResolvedLayer) gaugeLabelWarning() string {
+	if len(l.MetricList) < 2 {
+		return ""
+	}
+	longest := ""
+	for _, m := range l.MetricList {
+		if len(m) > len(longest) {
+			longest = string(m)
+		}
+	}
+	label := l.ShortLabel + " " + longest
+	n := utf8.RuneCountInString(label)
+	if n <= GaugeLabelChars {
+		return ""
+	}
+	return fmt.Sprintf("config: layer %s: its gauge label %q is %d characters and one line under a gauge fits %d, so the report page wraps it onto two; a short_label of at most %d characters keeps it on one",
+		l.ID, label, n, GaugeLabelChars, GaugeLabelChars-1-len(longest))
 }
 
 // allowed lists the metrics each format can measure.
@@ -313,8 +352,8 @@ func (c *Config) resolveLayer(l *Layer) (*ResolvedLayer, error) {
 			return nil, fmt.Errorf("%s %q may not contain |, `, <, > or a newline", what, s)
 		}
 	}
-	if n := len([]rune(rl.ShortLabel)); n > 16 {
-		return nil, fmt.Errorf("short_label %q is %d characters; at most 16 fit a gauge", rl.ShortLabel, n)
+	if n := utf8.RuneCountInString(rl.ShortLabel); n > GaugeLabelChars {
+		return nil, fmt.Errorf("short_label %q is %d characters; at most %d fit a gauge", rl.ShortLabel, n, GaugeLabelChars)
 	}
 	if len(l.Metrics) == 0 {
 		return nil, errors.New("metrics is empty")

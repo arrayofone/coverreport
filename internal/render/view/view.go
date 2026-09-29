@@ -609,16 +609,21 @@ func sameFiles(a, b []*File) bool {
 }
 
 // StateCounts is the rows' states in words: "3 hold, 1 below floor, 2
-// untouched".
+// untouched", and "1 holds" (the one verb among them agrees with its count).
 func (v *View) StateCounts() string {
 	var parts []string
 	for _, s := range []struct{ state, words string }{
 		{StateOK, "hold"}, {StateFail, "below floor"}, {StateWarn, "patch under target"}, {StateUntouched, "untouched"},
 		{StateCarried, "carried from " + v.BaseRef()}, {StateNotRun, "not run"}, {StateNew, "without a floor"}, {StateInfo, "report-only"},
 	} {
-		if n := v.Count(s.state); n > 0 {
-			parts = append(parts, fmt.Sprintf("%d %s", n, s.words))
+		n := v.Count(s.state)
+		if n == 0 {
+			continue
 		}
+		if n == 1 && s.state == StateOK {
+			s.words = "holds"
+		}
+		parts = append(parts, fmt.Sprintf("%d %s", n, s.words))
 	}
 	return strings.Join(parts, ", ")
 }
