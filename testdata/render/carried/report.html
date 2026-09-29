@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="generator" content="coverreport v0.1.0">
+<title>demo coverage #561: every floor holds</title>
+<style>
+/* css/demo.css */
+</style>
+</head>
+<body>
+<a class="skip" href="#files">Skip to changed files</a>
+<svg class="defs" aria-hidden="true" focusable="false"><defs>
+<pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-line" width="1.5" height="4" fill="#9198a1"/></pattern>
+</defs></svg>
+
+<header class="bar">
+  <div class="brand"><span class="wordmark">demo</span><span class="app">coverage</span></div>
+  <div class="pr">
+    <div class="pr-title"><a href="https://github.com/acme/demo/pull/561">#561</a>fix(calc): zero gets a name, and a store for the rows</div>
+    <div class="refs"><code>3f2a9c1</code> into <code>main</code> at <code>bb1595f</code>, push 1, 15:42 UTC, Sep 28</div>
+  </div>
+  <a class="ann ann-ok" href="#attention"><span class="lamp"></span><b>every floor holds</b><span>Coverage check passes</span></a>
+</header>
+
+<main>
+<section class="eicas" aria-labelledby="h-layers">
+  <h2 id="h-layers">layers<span class="n">5 hold, 1 untouched, 1 carried from main, 1 not run, 1 report-only</span></h2>
+  <div class="legend" aria-hidden="true">
+    <span><svg viewBox="0 0 16 12"><line x1="0" x2="16" y1="6" y2="6" class="lg-fl" stroke="#f85149" stroke-width="2"/></svg>floor</span>
+    <span><svg viewBox="0 0 16 12"><path d="M3 6 l9 -5 v10 z" class="lg-tg" fill="#4493f8"/></svg>target</span>
+    <span><svg viewBox="0 0 16 12"><rect x="6" y="0" width="4" height="12" class="lg-bc" fill="#d29922"/></svg>floor to target</span>
+    <span><svg viewBox="0 0 16 12"><rect x="6" y="0" width="4" height="12" class="lg-bo" fill="#3fb950"/></svg>at or past target</span>
+    <span><svg viewBox="0 0 16 12"><path d="M3 1 l8 5 l-8 5 z" class="lg-pt" fill="#c9d1d9"/></svg>now</span>
+  </div>
+  <div class="gauges">
+    <div class="grp">
+      <div class="grp-h">go</div>
+      <div class="grp-row">
+        <figure class="g g-ok d0">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Go unit (logic): 61.54%, floor 60.0, target 85.0, holds, floor can rise, patch 100.0%">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">61.54</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">&#43;1.54 vs 60.0</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="139.2" width="14" height="110.8" fill="#c9d1d9"/>
+            <rect class="bo" x="63" y="70" width="3" height="27" fill="#3fb950"/>
+            <rect class="bc" x="63" y="97" width="3" height="45" fill="#d29922"/>
+            <path class="tg" d="M68 97 l6 -4.5 v9 z" fill="#4493f8"/>
+            <text class="tv" x="76" y="100.5">85</text>
+            <line class="fl" x1="42" x2="67" y1="142" y2="142" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 134.7 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">go unit</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">patch 100.0%</text>
+            <text class="pa" x="52" y="301" text-anchor="middle">5/5</text>
+          </svg>
+        </figure>
+        <figure class="g g-untouched d1">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Go SQL adapters (Postgres): 66.67%, floor 66.6, target 80.0, holds, untouched by this change">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">66.67</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">&#43;0.07 vs 66.6</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="130" width="14" height="120" fill="#c9d1d9"/>
+            <rect class="bo" x="63" y="70" width="3" height="36" fill="#3fb950"/>
+            <rect class="bc" x="63" y="106" width="3" height="24.1" fill="#d29922"/>
+            <path class="tg" d="M68 106 l6 -4.5 v9 z" fill="#4493f8"/>
+            <text class="tv" x="76" y="109.5">80</text>
+            <line class="fl" x1="42" x2="67" y1="130.1" y2="130.1" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 125.5 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">go sql</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">untouched</text>
+          </svg>
+        </figure>
+        <figure class="g g-ok d2">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Go unit &#43; Postgres: 62.50%, floor 60.0, holds, floor can rise, patch 100.0%">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">62.50</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">&#43;2.50 vs 60.0</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="137.5" width="14" height="112.5" fill="#c9d1d9"/>
+            <line class="fl" x1="42" x2="67" y1="142" y2="142" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 133 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">go live</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">patch 100.0%</text>
+            <text class="pa" x="52" y="301" text-anchor="middle">5/5</text>
+          </svg>
+        </figure>
+        <figure class="g g-info d3">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Go e2e: 62.50%, report-only, not gated">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">62.50</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">report-only</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="137.5" width="14" height="112.5" fill="#c9d1d9"/>
+            <path class="pt" d="M35 133 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">go e2e</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">patch 100.0%</text>
+            <text class="pa" x="52" y="301" text-anchor="middle">5/5</text>
+          </svg>
+        </figure>
+      </div>
+    </div>
+    <div class="grp">
+      <div class="grp-h">web</div>
+      <div class="grp-row">
+        <figure class="g g-ok g-met d4">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Web (vitest) lines: 87.50%, floor 80.0, target 80.0, holds, floor can rise, patch 100.0%">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">87.50</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">&#43;7.50 vs 80.0</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="92.5" width="14" height="157.5" fill="#c9d1d9"/>
+            <rect class="bo" x="63" y="70" width="3" height="36" fill="#3fb950"/>
+            <rect class="bc" x="63" y="106" width="3" height="0" fill="#d29922"/>
+            <path class="tg" d="M68 106 l6 -4.5 v9 z" fill="#4493f8"/>
+            <text class="tv" x="76" y="109.5">80</text>
+            <line class="fl" x1="42" x2="67" y1="106" y2="106" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 88 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">web lines</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">patch 100.0%</text>
+            <text class="pa" x="52" y="301" text-anchor="middle">3/3</text>
+          </svg>
+        </figure>
+        <figure class="g g-ok g-met d5">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Web (vitest) branches: 75.00%, floor 70.0, target 75.0, holds, floor can rise">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">75.00</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">&#43;5.00 vs 70.0</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="115" width="14" height="135" fill="#c9d1d9"/>
+            <rect class="bo" x="63" y="70" width="3" height="45" fill="#3fb950"/>
+            <rect class="bc" x="63" y="115" width="3" height="9" fill="#d29922"/>
+            <path class="tg" d="M68 115 l6 -4.5 v9 z" fill="#4493f8"/>
+            <text class="tv" x="76" y="118.5">75</text>
+            <line class="fl" x1="42" x2="67" y1="124" y2="124" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 110.5 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">web branches</text>
+          </svg>
+        </figure>
+        <figure class="g g-ok g-long d6">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Web (vitest) functions: 75.00%, floor 75.0, holds">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">75.00</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">0.00 vs 75.0</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="115" width="14" height="135" fill="#c9d1d9"/>
+            <line class="fl" x1="42" x2="67" y1="115" y2="115" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 110.5 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">web functions</text>
+          </svg>
+        </figure>
+      </div>
+    </div>
+    <div class="grp">
+      <div class="grp-h">mobile</div>
+      <div class="grp-row">
+        <figure class="g g-carried d7">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Mobile (flutter): 66.67%, floor 66.6, not run here, carried">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">66.67</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">from main</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="fil" x="46" y="130" width="14" height="120" fill="#c9d1d9"/>
+            <line class="fl" x1="42" x2="67" y1="130.1" y2="130.1" stroke="#f85149" stroke-width="2"/>
+            <path class="pt" d="M35 125.5 l7 4.5 l-7 4.5 z" fill="#c9d1d9"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">mobile</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">not run here</text>
+            <text class="pa" x="52" y="301" text-anchor="middle">bb1595f</text>
+          </svg>
+        </figure>
+      </div>
+    </div>
+    <div class="grp">
+      <div class="grp-h">edge</div>
+      <div class="grp-row">
+        <figure class="g g-notrun d8">
+          <svg viewBox="0 0 104 304" role="img" aria-label="Edge Worker: —%, floor 98.0, target 95.0, not run here">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="#656c76"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="#f0f6fc">—</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="#9198a1">not run</text>
+            <line class="tk" x1="37" x2="46" y1="250" y2="250" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="232" y2="232" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="214" y2="214" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="196" y2="196" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="178" y2="178" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="160" y2="160" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="142" y2="142" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="124" y2="124" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="106" y2="106" stroke="#656c76"/>
+            <line class="tk" x1="41" x2="46" y1="88" y2="88" stroke="#656c76"/>
+            <line class="tk" x1="37" x2="46" y1="70" y2="70" stroke="#656c76"/>
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="#656c76"/>
+            <rect class="bo" x="63" y="70" width="3" height="9" fill="#3fb950"/>
+            <rect class="bc" x="63" y="79" width="3" height="0" fill="#d29922"/>
+            <path class="tg" d="M68 79 l6 -4.5 v9 z" fill="#4493f8"/>
+            <text class="tv" x="76" y="82.5">95</text>
+            <line class="fl" x1="42" x2="67" y1="73.6" y2="73.6" stroke="#f85149" stroke-width="2"/>
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="#f0f6fc">edge</text>
+            <text class="pa" x="52" y="288" text-anchor="middle">not affected</text>
+          </svg>
+        </figure>
+      </div>
+    </div>
+  </div>
+  <details class="table">
+    <summary>Readouts as a table</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>layer</th><th>measures</th><th class="r">now</th><th class="r">floor</th><th class="r">±floor</th><th class="r">target</th><th class="r">patch</th><th>state</th></tr></thead>
+      <tbody>
+        <tr><td>go unit</td><td>Go unit (logic), 8 of 13 statements</td><td class="r">61.54</td>
+        <td class="r">60.0</td><td class="r">&#43;1.54</td><td class="r">85.0</td>
+        <td class="r">100.0% (5/5)</td>
+        <td class="">holds, floor can rise</td></tr>
+        <tr class="off"><td>go sql</td><td>Go SQL adapters (Postgres), 2 of 3 statements</td><td class="r">66.67</td>
+        <td class="r">66.6</td><td class="r">&#43;0.07</td><td class="r">80.0</td>
+        <td class="r">—</td>
+        <td class="">holds, untouched by this change</td></tr>
+        <tr><td>go live</td><td>Go unit &#43; Postgres, 10 of 16 statements</td><td class="r">62.50</td>
+        <td class="r">60.0</td><td class="r">&#43;2.50</td><td class="r">—</td>
+        <td class="r">100.0% (5/5)</td>
+        <td class="">holds, floor can rise</td></tr>
+        <tr><td>go e2e</td><td>Go e2e, 10 of 16 statements</td><td class="r">62.50</td>
+        <td class="r">—</td><td class="r">—</td><td class="r">—</td>
+        <td class="r">100.0% (5/5)</td>
+        <td class="">report-only</td></tr>
+        <tr><td>web lines</td><td>Web (vitest) lines, 7 of 8 lines</td><td class="r">87.50</td>
+        <td class="r">80.0</td><td class="r">&#43;7.50</td><td class="r">80.0</td>
+        <td class="r">100.0% (3/3)</td>
+        <td class="">holds, floor can rise</td></tr>
+        <tr><td>web branches</td><td>Web (vitest) branches, 3 of 4 branches</td><td class="r">75.00</td>
+        <td class="r">70.0</td><td class="r">&#43;5.00</td><td class="r">75.0</td>
+        <td class="r">—</td>
+        <td class="">holds, floor can rise</td></tr>
+        <tr><td>web functions</td><td>Web (vitest) functions, 3 of 4 functions</td><td class="r">75.00</td>
+        <td class="r">75.0</td><td class="r">0.00</td><td class="r">—</td>
+        <td class="r">—</td>
+        <td class="">holds</td></tr>
+        <tr class="off"><td>mobile</td><td>Mobile (flutter), 2 of 3 lines</td><td class="r">66.67</td>
+        <td class="r">66.6</td><td class="r">&#43;0.07</td><td class="r">—</td>
+        <td class="r">—</td>
+        <td class="">not run here, carried</td></tr>
+        <tr class="off"><td>edge</td><td>Edge Worker</td><td class="r">—</td>
+        <td class="r">98.0</td><td class="r">—</td><td class="r">95.0</td>
+        <td class="r">—</td>
+        <td class="">not run here</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+</section>
+
+<div class="lower">
+<section id="attention" aria-labelledby="h-att">
+  <h2 id="h-att">needs attention</h2>
+  <ol class="ecam">
+    <li class="m m-target">
+      <p class="m-h"><span class="sq"></span><span>3 floors can rise</span><span class="lead"></span><span class="m-v">coverreport ratchet</span></p>
+      <ul class="acts">
+        <li><span>go live</span><span class="lead"></span><span>60.0 to 62.5</span></li>
+        <li><span>go unit</span><span class="lead"></span><span>60.0 to 61.5</span></li>
+        <li><span>web</span><span class="lead"></span><span>branches 70.0 to 75.0, lines 80.0 to 87.5</span></li>
+      </ul>
+    </li>
+    <li class="m m-info">
+      <p class="m-h"><span class="sq"></span><span>go e2e is report-only</span><span class="lead"></span><span class="m-v">62.50</span></p>
+      <p class="m-why">Measured and shown, never gated, never ratcheted, never merged into a gated row.</p>
+    </li>
+    <li class="m m-info">
+      <p class="m-h"><span class="sq"></span><span>not in play here</span><span class="lead"></span><span class="m-v">go sql, mobile, edge</span></p>
+      <p class="m-why">Untouched rows were measured and hold; rows not run here were not affected by this change, and show main's numbers from <code>bb1595f</code>. Their floors still count wherever they run.</p>
+    </li>
+  </ol>
+</section>
+
+<section aria-labelledby="h-patch">
+  <h2 id="h-patch">patch<span class="n">changed lines in this change</span></h2>
+  <div class="patch-top">
+    <div class="readout">100.0<small>%</small></div>
+    <p class="patch-note"><b>8 of 8</b> changed lines ran under a test. The target is 80%, informational until 2026-10-05.</p>
+  </div>
+  <svg class="push" viewBox="0 0 280 100" role="img" aria-label="Patch coverage by push: push 1 100%">
+    <line class="ax" x1="12" x2="268" y1="76" y2="76" stroke="#656c76"/>
+    <line class="tg" x1="12" x2="268" y1="58.8" y2="58.8" stroke="#4493f8"/>
+    <text class="tv" x="14" y="58.8" dy="-5" text-anchor="start">target 80</text>
+    <circle class="dot dot-last" cx="140" cy="14" r="3.2"/>
+    <text class="lv" x="140" y="14" dy="14" text-anchor="middle">100</text>
+    <text class="lb" x="140" y="92" text-anchor="middle">push 1</text>
+  </svg>
+  <table class="ptab">
+    <tr><td>go unit</td><td><svg class="hm hm-ok" viewBox="0 0 160 8" role="img" aria-label="go unit patch 100.0%">
+      <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="160" height="8" fill="#c9d1d9"/>
+      <line class="tg" x1="128" x2="128" y1="-2" y2="10" stroke="#4493f8"/></svg></td>
+      <td class="r">100.0%</td><td class="r">5/5</td></tr>
+    <tr><td>go live</td><td><svg class="hm hm-ok" viewBox="0 0 160 8" role="img" aria-label="go live patch 100.0%">
+      <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="160" height="8" fill="#c9d1d9"/>
+      <line class="tg" x1="128" x2="128" y1="-2" y2="10" stroke="#4493f8"/></svg></td>
+      <td class="r">100.0%</td><td class="r">5/5</td></tr>
+    <tr><td>go e2e</td><td><svg class="hm hm-info" viewBox="0 0 160 8" role="img" aria-label="go e2e patch 100.0%">
+      <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="160" height="8" fill="#c9d1d9"/>
+      <line class="tg" x1="128" x2="128" y1="-2" y2="10" stroke="#4493f8"/></svg></td>
+      <td class="r">100.0%</td><td class="r">5/5</td></tr>
+    <tr><td>web</td><td><svg class="hm hm-ok" viewBox="0 0 160 8" role="img" aria-label="web patch 100.0%">
+      <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="160" height="8" fill="#c9d1d9"/>
+      <line class="tg" x1="128" x2="128" y1="-2" y2="10" stroke="#4493f8"/></svg></td>
+      <td class="r">100.0%</td><td class="r">3/3</td></tr>
+  </table>
+</section>
+</div>
+<section id="map" aria-labelledby="h-map">
+  <h2 id="h-map">where the untested code lives<span class="n">Web (vitest), by package</span></h2>
+  <p class="note">Area is lines; fill is how far a package sits below its target. Paths are under <code>apps/web/src/</code>. Select a tile for its row.</p>
+  <div class="legend tm-legend" aria-hidden="true">
+    <span><i class="sw sw-ok"></i>at or above target</span><span><i class="sw sw-h1"></i>up to 10 short</span><span><i class="sw sw-h2"></i>10 to 25 short</span><span><i class="sw sw-h3"></i>more than 25 short</span><span><i class="sw sw-fail"></i>below its floor</span><span><i class="sw sw-touched"></i>touched by this change</span>
+  </div>
+  <div class="tm-box">
+<svg class="tm tm-wide" viewBox="0 0 1056 440" role="img" aria-labelledby="tm-w-title">
+  <title id="tm-w-title">Packages by size, filled by distance below target. The table under "every package" lists the same numbers.</title>
+  <a href="#pkg-web-apps-web-src-lib"><title>apps/web/src/lib: 100.00% of 5 lines, target 80, touched by this change</title><rect class="tm-tile tm-ok" x="1.5" y="1.5" width="657" height="437" rx="3" fill="#1b222b"/><rect class="tm-touched" x="3" y="3" width="654" height="434" rx="2" fill="none" stroke="#4493f8" stroke-width="2"/><text class="tm-t tf-ok" x="9.5" y="18.5" fill="#9198a1">lib</text><text class="tm-s tf-ok" x="9.5" y="34.5" fill="#9198a1">100.00%</text><text class="tm-x tf-ok" x="9.5" y="50.5" fill="#9198a1">5 lines</text></a>
+  <a href="#pkg-web-apps-web-src-components"><title>apps/web/src/components: 66.67% of 3 lines, target 80</title><rect class="tm-tile tm-h2" x="661.5" y="1.5" width="393" height="437" rx="3" fill="#7d5a12"/><text class="tm-t tf-h2" x="669.5" y="18.5" fill="#f0f6fc">components</text><text class="tm-s tf-h2" x="669.5" y="34.5" fill="#f0f6fc">66.67%</text><text class="tm-x tf-h2" x="669.5" y="50.5" fill="#f0f6fc">3 lines</text></a>
+</svg>
+<svg class="tm tm-tall" viewBox="0 0 358 760" role="img" aria-labelledby="tm-t-title">
+  <title id="tm-t-title">Packages by size, filled by distance below target. The table under "every package" lists the same numbers.</title>
+  <a href="#pkg-web-apps-web-src-lib"><title>apps/web/src/lib: 100.00% of 5 lines, target 80, touched by this change</title><rect class="tm-tile tm-ok" x="1.5" y="1.5" width="355" height="472" rx="3" fill="#1b222b"/><rect class="tm-touched" x="3" y="3" width="352" height="469" rx="2" fill="none" stroke="#4493f8" stroke-width="2"/><text class="tm-t tf-ok" x="9.5" y="18.5" fill="#9198a1">lib</text><text class="tm-s tf-ok" x="9.5" y="34.5" fill="#9198a1">100.00%</text><text class="tm-x tf-ok" x="9.5" y="50.5" fill="#9198a1">5 lines</text></a>
+  <a href="#pkg-web-apps-web-src-components"><title>apps/web/src/components: 66.67% of 3 lines, target 80</title><rect class="tm-tile tm-h2" x="1.5" y="476.5" width="355" height="282" rx="3" fill="#7d5a12"/><text class="tm-t tf-h2" x="9.5" y="493.5" fill="#f0f6fc">components</text><text class="tm-s tf-h2" x="9.5" y="509.5" fill="#f0f6fc">66.67%</text><text class="tm-x tf-h2" x="9.5" y="525.5" fill="#f0f6fc">3 lines</text></a>
+</svg>
+  </div>
+</section>
+
+<section id="files" aria-labelledby="h-files">
+  <h2 id="h-files">changed files<span class="n">2 with coverable changes, 0 lines without a test</span></h2>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>file</th><th>counts toward</th><th>changed lines, in order</th><th class="r">ran</th><th>no test yet</th></tr></thead>
+    <tbody>
+      <tr><td class="file"><a href="#f1"><span class="dir">apps/web/src/lib/</span><span class="fn">money.ts</span></a></td>
+      <td>web</td>
+      <td><svg class="strip" width="19" height="14" viewBox="0 0 19 14" role="img" aria-label="3 of 3 changed lines ran"><rect class="c" x="0" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="7" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="14" y="0" width="5" height="14" rx="1" fill="#3fb950"/></svg></td>
+      <td class="r">3/3</td>
+      <td><span class="dir">every changed line ran</span></td></tr>
+      <tr><td class="file"><a href="#f2"><span class="dir">libs/go/calc/</span><span class="fn">calc.go</span></a></td>
+      <td>go unit<br>go live</td>
+      <td><svg class="strip" width="33" height="14" viewBox="0 0 33 14" role="img" aria-label="5 of 5 changed lines ran"><rect class="c" x="0" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="7" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="14" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="21" y="0" width="5" height="14" rx="1" fill="#3fb950"/><rect class="c" x="28" y="0" width="5" height="14" rx="1" fill="#3fb950"/></svg></td>
+      <td class="r">5/5</td>
+      <td><span class="dir">every changed line ran</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="lgd"><span><i class="i-cov"></i>changed, ran</span><span><i class="i-unc"></i>changed, never ran</span><span><i class="i-old"></i>unchanged, never ran (an older gap)</span><span><i class="i-tgt"></i>the line a link took you to</span></p>
+  <details class="lst" id="f1">
+    <summary><span class="path"><span class="dir">apps/web/src/lib/</span><b>money.ts</b></span><span class="chip">web</span><span class="frac">3/3 changed lines ran</span></summary>
+    <p class="nosrc">The source is not available (render with --source-root, a checkout of the measured commit, to see the code). Changed lines that never ran: none.</p>
+    <div class="code">
+    <table class="src">
+      <tr class="hk"><td colspan="2">@@ 1</td></tr>
+      <tr class="cov" id="f1-L1"><td class="no"><a href="#f1-L1">1</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f1-L2"><td class="no"><a href="#f1-L2">2</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f1-L3"><td class="no"><a href="#f1-L3">3</a></td><td class="cd"></td></tr>
+    </table>
+    </div>
+  </details>
+  <details class="lst" id="f2">
+    <summary><span class="path"><span class="dir">libs/go/calc/</span><b>calc.go</b></span><span class="chip">go unit and go live</span><span class="frac">5/5 changed lines ran</span></summary>
+    <p class="nosrc">The source is not available (render with --source-root, a checkout of the measured commit, to see the code). Changed lines that never ran: none.</p>
+    <div class="code">
+    <table class="src">
+      <tr class="hk"><td colspan="2">@@ 26</td></tr>
+      <tr class="cov" id="f2-L26"><td class="no"><a href="#f2-L26">26</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f2-L27"><td class="no"><a href="#f2-L27">27</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f2-L28"><td class="no"><a href="#f2-L28">28</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f2-L29"><td class="no"><a href="#f2-L29">29</a></td><td class="cd"></td></tr>
+      <tr class="chg" id="f2-L30"><td class="no"><a href="#f2-L30">30</a></td><td class="cd"></td></tr>
+      <tr class="cov" id="f2-L31"><td class="no"><a href="#f2-L31">31</a></td><td class="cd"></td></tr>
+    </table>
+    </div>
+  </details>
+</section>
+
+<div class="two">
+<section aria-labelledby="h-pk">
+  <h2 id="h-pk">packages touched<span class="n">3</span></h2>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>package</th><th class="r">floor</th><th class="r">now</th><th class="r">±floor</th><th class="r">patch</th><th></th></tr></thead>
+    <tbody>
+      <tr><td class="pk"><a href="#pkg-go-unit-libs-go-calc">libs/go/calc</a><br><span class="dir">go unit, target 80</span></td><td class="r">—</td><td class="r">61.54</td><td class="r">—</td><td class="r">100.0% 5/5</td>
+      <td><svg class="hm" width="160" height="10" viewBox="0 -1 160 10" role="img" aria-label="libs/go/calc 61.54%, floor —">
+        <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="98.5" height="8" fill="#c9d1d9"/><line class="tg" x1="128" x2="128" y1="-1" y2="9" stroke="#4493f8"/></svg></td></tr>
+      <tr><td class="pk"><a href="#pkg-go-live-libs-go-calc">libs/go/calc</a><br><span class="dir">go live</span></td><td class="r">—</td><td class="r">62.50</td><td class="r">—</td><td class="r">100.0% 5/5</td>
+      <td><svg class="hm" width="160" height="10" viewBox="0 -1 160 10" role="img" aria-label="libs/go/calc 62.50%, floor —">
+        <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="100" height="8" fill="#c9d1d9"/></svg></td></tr>
+      <tr><td class="pk"><a href="#pkg-web-apps-web-src-lib">apps/web/src/lib</a><br><span class="dir">web, target 80</span></td><td class="r">—</td><td class="r">100.00</td><td class="r">—</td><td class="r">100.0% 3/3</td>
+      <td><svg class="hm" width="160" height="10" viewBox="0 -1 160 10" role="img" aria-label="apps/web/src/lib 100.00%, floor —">
+        <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="#656c76"/><rect class="fil" x="0" y="0" width="160" height="8" fill="#c9d1d9"/><line class="tg" x1="128" x2="128" y1="-1" y2="9" stroke="#4493f8"/></svg></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+<section aria-labelledby="h-rt">
+  <h2 id="h-rt">ratchet<span class="n">3 floors can rise</span></h2>
+  <p class="note">Run <code>coverreport ratchet</code> and commit <code>coverage/floors.json</code>. These are the entries it rewrites:</p>
+  <pre class="diff" aria-label="coverage/floors.json diff"><span class="h">@@ coverage/floors.json @@</span><span class="x">   &#34;layers&#34;: {</span><span class="d">-    &#34;go-live&#34;: { &#34;statements&#34;: 60.0 }</span><span class="a">&#43;    &#34;go-live&#34;: { &#34;statements&#34;: 62.5 }</span><span class="d">-    &#34;go-unit&#34;: { &#34;statements&#34;: 60.0 }</span><span class="a">&#43;    &#34;go-unit&#34;: { &#34;statements&#34;: 61.5 }</span><span class="d">-    &#34;web&#34;: { &#34;branches&#34;: 70.0, &#34;functions&#34;: 75.0, &#34;lines&#34;: 80.0 }</span><span class="a">&#43;    &#34;web&#34;: { &#34;branches&#34;: 75.0, &#34;functions&#34;: 75.0, &#34;lines&#34;: 87.5 }</span><span class="x">   &#34;packages&#34;: {</span><span class="x">     &#34;go-live&#34;: {</span><span class="a">&#43;      &#34;libs/go/calc&#34;: { &#34;statements&#34;: 62.5 }</span><span class="x">     &#34;go-unit&#34;: {</span><span class="a">&#43;      &#34;libs/go/calc&#34;: { &#34;statements&#34;: 61.5 }</span><span class="x">   &#34;globs&#34;: {</span><span class="x">     &#34;go-unit&#34;: {</span><span class="a">&#43;      &#34;libs/go/calc/**&#34;: { &#34;statements&#34;: 61.5 }</span><span class="x">     &#34;web&#34;: {</span><span class="a">&#43;      &#34;apps/web/src/lib/**&#34;: { &#34;branches&#34;: 100.0, &#34;functions&#34;: 100.0, &#34;lines&#34;: 100.0 }</span><span class="a">&#43;      &#34;apps/web/src/{components,app}/**&#34;: { &#34;branches&#34;: 50.0, &#34;functions&#34;: 50.0, &#34;lines&#34;: 66.6 }</span></pre>
+</section>
+</div>
+<section id="packages" aria-labelledby="h-all">
+  <h2 id="h-all">every package<span class="n">most units without a test first</span></h2>
+  <details class="table">
+    <summary>Go unit (logic): 1 packages</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">stmts</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+        <tr id="pkg-go-unit-libs-go-calc"><td class="nw">libs/go/calc</td><td class="r">13</td><td class="r">5</td><td class="r">61.54</td><td class="r">—</td><td class="r">80.0</td><td class="">no floor, touched</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+  <details class="table">
+    <summary>Go SQL adapters (Postgres): 1 packages</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">stmts</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+        <tr id="pkg-go-sql-libs-go-calc"><td class="nw">libs/go/calc</td><td class="r">3</td><td class="r">1</td><td class="r">66.67</td><td class="r">—</td><td class="r">80.0</td><td class="">no floor</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+  <details class="table">
+    <summary>Go unit &#43; Postgres: 1 packages</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">stmts</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+        <tr id="pkg-go-live-libs-go-calc"><td class="nw">libs/go/calc</td><td class="r">16</td><td class="r">6</td><td class="r">62.50</td><td class="r">—</td><td class="r">—</td><td class="">no floor, touched</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+  <details class="table">
+    <summary>Go e2e: 1 packages</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">stmts</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+        <tr id="pkg-go-e2e-libs-go-calc"><td class="nw">libs/go/calc</td><td class="r">16</td><td class="r">6</td><td class="r">62.50</td><td class="r">—</td><td class="r">—</td><td class="">no floor, touched</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+  <details class="table">
+    <summary>Web (vitest): 2 packages, 1 at 100%</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">lines</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+        <tr id="pkg-web-apps-web-src-components"><td class="nw">apps/web/src/components</td><td class="r">3</td><td class="r">1</td><td class="r">66.67</td><td class="r">—</td><td class="r">80.0</td><td class="">no floor</td></tr>
+        <tr id="pkg-web-apps-web-src-lib"><td class="nw">apps/web/src/lib</td><td class="r">5</td><td class="r">0</td><td class="r">100.00</td><td class="r">—</td><td class="r">80.0</td><td class="">no floor, touched</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+</section>
+<section aria-labelledby="h-ex">
+  <h2 id="h-ex">left out of the denominator<span class="n">12 statements and 1 line</span></h2>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>glob</th><th>why</th><th class="r">size</th></tr></thead>
+    <tbody>
+      <tr><td><code>**/*_templ.go</code></td><td>templ codegen</td><td class="r">2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e</td></tr>
+      <tr><td><code>libs/go/svc/*/main.go</code></td><td>thin wiring; the e2e lane measures it</td><td class="r">2 stmts in go-unit<br>2 stmts in go-live<br>2 stmts in go-e2e</td></tr>
+      <tr><td><code>apps/web/src/components/ui/**</code></td><td>vendored shadcn</td><td class="r">1 lines in web</td></tr>
+      <tr><td><code>apps/mobile/lib/**/*.g.dart</code></td><td>drift codegen</td><td class="r">nothing measured</td></tr>
+      <tr><td><code>apps/web/src/legacy/**</code></td><td>deleted last quarter</td><td class="r">nothing measured</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Layer boundaries: what each layer's own include and exclude keep out.</p>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>layer</th><th>rule</th><th class="r">size</th></tr></thead>
+    <tbody>
+      <tr><td>go unit</td><td>exclude <code>libs/go/**/store_pg.go</code></td><td class="r">3 stmts</td></tr>
+      <tr><td>go sql</td><td>not included</td><td class="r">17 stmts</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+<section aria-labelledby="h-hm">
+  <h2 id="h-hm">how this was measured</h2>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>layer</th><th>how</th><th>inputs</th></tr></thead>
+    <tbody>
+      <tr><td>go unit</td><td>go test -covermode=atomic -coverpkg=./..., database unset; SQL adapters are go-sql&#39;s (mode atomic)</td><td><code>coverage-go/unit.out</code></td></tr>
+      <tr><td>go sql</td><td>go (mode atomic)</td><td><code>coverage-go/live.out</code></td></tr>
+      <tr><td>go live</td><td>go (mode atomic)</td><td><code>coverage-go/live.out</code></td></tr>
+      <tr><td>go e2e</td><td>go (mode atomic)</td><td><code>coverage-go-e2e/e2e.out</code></td></tr>
+      <tr><td>web</td><td>lcov</td><td><code>coverage-web/shard-1/lcov.info</code><br><code>coverage-web/shard-2/lcov.info</code></td></tr>
+      <tr><td>patch</td><td>the diff against the base: 2 files, 9 lines added</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer>
+  <span>coverreport v0.1.0, brand demo</span><span><a href="https://github.com/acme/demo/actions/runs/18342917305">the run</a></span>
+  <span>floors: <a href="https://github.com/acme/demo/blob/3f2a9c1d5e6f708192a3b4c5d6e7f8091a2b3c4d/coverage/floors.json">coverage/floors.json</a></span>
+  <span>this page makes no network requests and runs no scripts</span>
+</footer>
+</main>
+</body>
+</html>

@@ -8,7 +8,9 @@
 package report
 
 import (
+	"github.com/DarrenBangsund/coverreport/internal/brand"
 	"github.com/DarrenBangsund/coverreport/internal/coverage"
+	"github.com/DarrenBangsund/coverreport/internal/endpoints"
 	"github.com/DarrenBangsund/coverreport/internal/floors"
 )
 
@@ -41,6 +43,9 @@ const (
 	FailGlob     = "glob"
 	FailPatch    = "patch"
 	FailRequired = "required"
+	// FailEndpoints is one endpoint-registry baseline violation (Key is the
+	// endpoint id).
+	FailEndpoints = "endpoints"
 )
 
 // Report is report.json.
@@ -70,6 +75,36 @@ type Report struct {
 	// ratchet --prune deletes them.
 	StaleFloors []floors.Ref `json:"stale_floors"`
 	Warnings    []string     `json:"warnings"`
+
+	// The fields below are presentation inputs carried for the renderers
+	// (added after version 1 shipped; all optional, so version stays 1).
+
+	// Brand is the config's brand block, verbatim.
+	Brand *brand.Config `json:"brand,omitempty"`
+	// RatchetCommand is what the surfaces tell a reader to run.
+	RatchetCommand string `json:"ratchet_command,omitempty"`
+	// Baseline names the base-branch report layers were carried from
+	// (analyze --baseline).
+	Baseline *BaselineRef `json:"baseline,omitempty"`
+	// Endpoints is the endpoint registry's completeness summary
+	// (analyze --endpoints); its violations are also failures.
+	Endpoints *endpoints.Summary `json:"endpoints,omitempty"`
+}
+
+// BaselineRef identifies the report that not-measured layers' values were
+// carried from.
+type BaselineRef struct {
+	File        string `json:"file"`
+	SHA         string `json:"sha,omitempty"`
+	GeneratedAt string `json:"generated_at,omitempty"`
+}
+
+// Carried is a not-measured layer's totals as the baseline report measured
+// them. Display only: the layer's own status stays not_measured and nothing
+// carried is ever checked or ratcheted.
+type Carried struct {
+	SHA    string                `json:"sha,omitempty"`
+	Totals map[string]PatchCount `json:"totals"`
 }
 
 // Metadata is passed in by flags or the GitHub Actions environment and
@@ -82,6 +117,11 @@ type Metadata struct {
 	HeadRef string `json:"head_ref,omitempty"`
 	BaseRef string `json:"base_ref,omitempty"`
 	RunURL  string `json:"run_url,omitempty"`
+	// Title and HeadSHA come from the pull_request event payload
+	// ($GITHUB_EVENT_PATH) or flags: the PR's title and its head commit
+	// (SHA is the commit measured, the merge commit on a pull_request run).
+	Title   string `json:"title,omitempty"`
+	HeadSHA string `json:"head_sha,omitempty"`
 }
 
 // Failure is one reason the report's status is "fail".
@@ -146,6 +186,13 @@ type Layer struct {
 	// sizes, so a layer boundary cannot hide code any more quietly than
 	// exclude.txt can.
 	Scope []ScopeExclusion `json:"scope"`
+	// ShortLabel, Group and Treemap are presentation (see config).
+	ShortLabel string `json:"short_label,omitempty"`
+	Group      string `json:"group,omitempty"`
+	Treemap    bool   `json:"treemap,omitempty"`
+	// Carried is set on a not_measured layer when a baseline report
+	// measured it.
+	Carried *Carried `json:"carried,omitempty"`
 }
 
 // Group is a package (directory) or glob row.
@@ -211,6 +258,8 @@ type Patch struct {
 	Target   float64 `json:"target"`
 	MinLines int     `json:"min_lines"`
 	Blocking bool    `json:"blocking"`
+	// InformationalUntil is the config's planned end of the soak (display).
+	InformationalUntil string `json:"informational_until,omitempty"`
 	// Overall is the union over gated layers: a changed line is coverable
 	// when any layer can cover it and covered when any layer did.
 	// Informational; the gate is per layer.

@@ -16,6 +16,7 @@ import (
 	"github.com/DarrenBangsund/coverreport/internal/config"
 	"github.com/DarrenBangsund/coverreport/internal/coverage"
 	"github.com/DarrenBangsund/coverreport/internal/diff"
+	"github.com/DarrenBangsund/coverreport/internal/endpoints"
 	"github.com/DarrenBangsund/coverreport/internal/exclude"
 	"github.com/DarrenBangsund/coverreport/internal/floors"
 	"github.com/DarrenBangsund/coverreport/internal/glob"
@@ -45,6 +46,15 @@ type Input struct {
 	// whose inputs matched nothing is a failure instead of "not_measured".
 	Require []string
 	Now     time.Time
+	// Baseline is an earlier report from the base branch; a layer not
+	// measured in this run carries its totals from it, for display
+	// (BaselineFile names it in the report).
+	Baseline     *Report
+	BaselineFile string
+	// Endpoints is the endpoint registry; its baseline violations become
+	// failures (EndpointsFile names it in the report).
+	Endpoints     *endpoints.File
+	EndpointsFile string
 }
 
 // layerData is one layer's files after scope and exclusions.
@@ -85,20 +95,22 @@ func Analyze(in Input) (*Report, error) {
 		res:   res,
 		sizes: make([]map[string]*ExclusionSize, len(in.Excludes)),
 		rep: &Report{
-			Version:      Version,
-			Tool:         "coverreport",
-			GeneratedAt:  in.Now.UTC().Format(time.RFC3339),
-			Metadata:     in.Metadata,
-			Failures:     []Failure{},
-			TolerancePts: in.Floors.TolerancePts,
-			FloorsFile:   in.Config.Floors,
-			FloorsFound:  in.FloorsFound,
-			ExcludeFile:  in.Config.Exclude,
-			Layers:       []Layer{},
-			Exclusions:   []Exclusion{},
-			Ratchet:      []floors.Change{},
-			StaleFloors:  []floors.Ref{},
-			Warnings:     []string{},
+			Version:        Version,
+			Tool:           "coverreport",
+			GeneratedAt:    in.Now.UTC().Format(time.RFC3339),
+			Metadata:       in.Metadata,
+			Failures:       []Failure{},
+			TolerancePts:   in.Floors.TolerancePts,
+			FloorsFile:     in.Config.Floors,
+			FloorsFound:    in.FloorsFound,
+			ExcludeFile:    in.Config.Exclude,
+			Layers:         []Layer{},
+			Exclusions:     []Exclusion{},
+			Ratchet:        []floors.Change{},
+			StaleFloors:    []floors.Ref{},
+			Warnings:       []string{},
+			Brand:          in.Config.Brand,
+			RatchetCommand: in.Config.RatchetCommand,
 		},
 	}
 	for _, w := range warns {
@@ -127,6 +139,8 @@ func Analyze(in Input) (*Report, error) {
 	}
 	a.rep.Patch = a.patch()
 	a.exclusions()
+	a.carry()
+	a.endpoints()
 	for _, id := range in.Require {
 		if err := a.rep.Require(id, in.Config); err != nil {
 			return nil, err
@@ -239,6 +253,9 @@ func (a *analyzer) loadLayer(l *config.ResolvedLayer) (*layerData, *Layer, error
 		Globs:       []Group{},
 		LowestFiles: []FileSummary{},
 		Scope:       []ScopeExclusion{},
+		ShortLabel:  l.ShortLabel,
+		Group:       l.Group,
+		Treemap:     l.Treemap,
 	}
 	ld := &layerData{cfg: l, files: map[string]*coverage.File{}}
 	inputs, unmatched, err := findInputs(a.in.InputsDir, l.InputGlobs)
@@ -737,6 +754,56 @@ func (a *analyzer) exclusions() {
 			a.warn("%s:%d: %s matches no file in any layer; delete the line", a.in.Config.Exclude, rule.Line, rule.Glob)
 		}
 		a.rep.Exclusions = append(a.rep.Exclusions, e)
+	}
+}
+
+// carry copies a baseline report's totals onto every layer this run did not
+// measure, so a surface can say "92.73, from main" instead of nothing. It
+// changes no status: carried numbers are never checked or ratcheted, because
+// they describe a different commit.
+func (a *analyzer) carry() {
+	b := a.in.Baseline
+	if b == nil {
+		return
+	}
+	a.rep.Baseline = &BaselineRef{File: a.in.BaselineFile, SHA: b.Metadata.SHA, GeneratedAt: b.GeneratedAt}
+	for i := range a.rep.Layers {
+		l := &a.rep.Layers[i]
+		if l.Status != StatusNotMeasured {
+			continue
+		}
+		for _, bl := range b.Layers {
+			if bl.ID != l.ID || bl.Status == StatusNotMeasured {
+				continue
+			}
+			c := &Carried{SHA: b.Metadata.SHA, Totals: map[string]PatchCount{}}
+			for _, m := range l.Metrics {
+				if mr, ok := bl.Totals[m]; ok && mr.Total > 0 {
+					c.Totals[m] = patchCount(coverage.Count{Covered: mr.Covered, Total: mr.Total})
+				}
+			}
+			if len(c.Totals) > 0 {
+				l.Carried = c
+			}
+		}
+	}
+}
+
+// endpoints condenses the endpoint registry and turns each of its baseline
+// violations into a failure: the registry's baseline is shrink-only, so an
+// endpoint that gained a gap fails the same check a broken floor does.
+func (a *analyzer) endpoints() {
+	if a.in.Endpoints == nil {
+		return
+	}
+	s := endpoints.Summarize(a.in.Endpoints, a.in.EndpointsFile)
+	a.rep.Endpoints = s
+	for _, v := range s.Violations {
+		msg := "endpoint " + v.ID + " broke the endpoint baseline"
+		if v.Detail != "" {
+			msg += ": " + v.Detail
+		}
+		a.rep.Failures = append(a.rep.Failures, Failure{Scope: FailEndpoints, Key: v.ID, Message: msg})
 	}
 }
 

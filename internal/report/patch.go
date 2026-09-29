@@ -21,6 +21,8 @@ func (a *analyzer) patch() Patch {
 		MinLines: cfg.MinLines,
 		Blocking: cfg.Blocking,
 		Layers:   []PatchLayer{},
+
+		InformationalUntil: cfg.InformationalUntil,
 	}
 	if a.in.Diff == nil {
 		return p

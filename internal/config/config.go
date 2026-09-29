@@ -15,7 +15,9 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
+	"github.com/DarrenBangsund/coverreport/internal/brand"
 	"github.com/DarrenBangsund/coverreport/internal/coverage"
 	"github.com/DarrenBangsund/coverreport/internal/glob"
 	"github.com/DarrenBangsund/coverreport/internal/paths"
@@ -31,6 +33,8 @@ const (
 	DefaultPatchTarget = 80.0
 	DefaultMinLines    = 5
 	DefaultLowestFiles = 25
+	// DefaultRatchetCommand is what the surfaces tell a reader to run.
+	DefaultRatchetCommand = "coverreport ratchet"
 )
 
 // Formats.
@@ -49,6 +53,13 @@ type Config struct {
 	Patch       *Patch              `json:"patch,omitempty"`
 	LowestFiles *int                `json:"lowest_files,omitempty"`
 	Layers      []Layer             `json:"layers"`
+	// Brand themes the rendered surfaces (see internal/brand); presentation
+	// only, never read by the gate.
+	Brand *brand.Config `json:"brand,omitempty"`
+	// RatchetCommand is what the rendered surfaces tell a reader to run to
+	// raise the floors ("make coverage-ratchet"); default "coverreport
+	// ratchet".
+	RatchetCommand string `json:"ratchet_command,omitempty"`
 }
 
 // Patch configures patch (diff) coverage.
@@ -56,6 +67,10 @@ type Patch struct {
 	Target   *float64 `json:"target,omitempty"`
 	MinLines *int     `json:"min_lines,omitempty"`
 	Blocking bool     `json:"blocking"`
+	// InformationalUntil (YYYY-MM-DD) is when a non-blocking patch gate is
+	// planned to start blocking. Shown in the rendered copy only: blocking
+	// is still exactly Blocking, flipped by a reviewed commit.
+	InformationalUntil string `json:"informational_until,omitempty"`
 }
 
 // Layer is one row of the coverage table.
@@ -73,6 +88,16 @@ type Layer struct {
 	Paths       *Paths             `json:"paths,omitempty"`
 	Packages    *Packages          `json:"packages,omitempty"`
 	Globs       []Glob             `json:"globs,omitempty"`
+	// ShortLabel is the name in tight places (a gauge, a 13-column table
+	// cell): "go unit+pg". Default: the id with dashes as spaces.
+	ShortLabel string `json:"short_label,omitempty"`
+	// Group gathers adjacent layers under one heading on the report page
+	// (the four Go layers under "go"). Default: the id up to its first dash.
+	Group string `json:"group,omitempty"`
+	// Treemap draws this layer's packages as the report page's treemap of
+	// where the untested code lives. Default: the measured, gated layer
+	// with the most units of its primary metric spread over packages.
+	Treemap bool `json:"treemap,omitempty"`
 }
 
 // Paths is LCOV path handling (see paths.Resolver.LCOVFile).
@@ -100,14 +125,17 @@ type Glob struct {
 // Resolved is a validated config with every default applied and every glob
 // compiled; it is what the analyzer consumes.
 type Resolved struct {
-	Floors      string
-	Exclude     string
-	GoModules   map[string]string
-	PatchTarget float64
-	MinLines    int
-	Blocking    bool
-	LowestFiles int
-	Layers      []*ResolvedLayer
+	Floors             string
+	Exclude            string
+	GoModules          map[string]string
+	PatchTarget        float64
+	MinLines           int
+	Blocking           bool
+	InformationalUntil string
+	LowestFiles        int
+	Layers             []*ResolvedLayer
+	Brand              *brand.Config
+	RatchetCommand     string
 }
 
 // ResolvedLayer is a validated layer.
@@ -189,6 +217,12 @@ func (c *Config) Resolve() (*Resolved, error) {
 			r.MinLines = *c.Patch.MinLines
 		}
 		r.Blocking = c.Patch.Blocking
+		if d := c.Patch.InformationalUntil; d != "" {
+			if _, err := time.Parse("2006-01-02", d); err != nil {
+				return nil, fmt.Errorf("config: patch.informational_until %q is not a YYYY-MM-DD date", d)
+			}
+			r.InformationalUntil = d
+		}
 	}
 	if err := checkPct("patch.target", r.PatchTarget); err != nil {
 		return nil, err
@@ -218,6 +252,14 @@ func (c *Config) Resolve() (*Resolved, error) {
 			return nil, fmt.Errorf("config: set %q is empty", name)
 		}
 	}
+	if err := c.Brand.Validate(); err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
+	r.Brand = c.Brand
+	if strings.ContainsAny(c.RatchetCommand, "`\n\r") {
+		return nil, errors.New("config: ratchet_command must be one line without backticks")
+	}
+	r.RatchetCommand = orDefault(c.RatchetCommand, DefaultRatchetCommand)
 	if len(c.Layers) == 0 {
 		return nil, errors.New("config: no layers")
 	}
@@ -257,6 +299,22 @@ func (c *Config) resolveLayer(l *Layer) (*ResolvedLayer, error) {
 	rl := &ResolvedLayer{Layer: *l, TargetMap: map[coverage.Metric]float64{}, PkgTargets: map[coverage.Metric]float64{}}
 	if rl.Label == "" {
 		rl.Label = l.ID
+	}
+	if rl.ShortLabel == "" {
+		rl.ShortLabel = strings.ReplaceAll(l.ID, "-", " ")
+	}
+	if rl.Group == "" {
+		rl.Group, _, _ = strings.Cut(l.ID, "-")
+	}
+	for what, s := range map[string]string{"label": rl.Label, "short_label": rl.ShortLabel, "group": rl.Group} {
+		// Labels land in markdown tables, fixed-width grids and HTML: one
+		// line, and nothing that would open a code span or a cell.
+		if strings.ContainsAny(s, "|`\n\r<>") {
+			return nil, fmt.Errorf("%s %q may not contain |, `, <, > or a newline", what, s)
+		}
+	}
+	if n := len([]rune(rl.ShortLabel)); n > 16 {
+		return nil, fmt.Errorf("short_label %q is %d characters; at most 16 fit a gauge", rl.ShortLabel, n)
 	}
 	if len(l.Metrics) == 0 {
 		return nil, errors.New("metrics is empty")

@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="generator" content="coverreport {{.V.Version}}">
+<title>{{.V.Brand.Name}} coverage {{.V.Subject}}: {{.V.Heading}}</title>
+<style>
+{{.CSS}}
+</style>
+</head>
+<body>
+<a class="skip" href="#files">Skip to changed files</a>
+<svg class="defs" aria-hidden="true" focusable="false"><defs>
+<pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-line" width="1.5" height="4" fill="{{$.Tok "ink-soft"}}"/></pattern>
+</defs></svg>
+{{- $v := .V}}{{$m := .V.R.Metadata}}
+
+<header class="bar">
+  <div class="brand"><span class="wordmark">{{$v.Brand.Name}}</span><span class="app">coverage</span></div>
+  <div class="pr">
+    <div class="pr-title">{{if $m.PR}}{{if $v.Links.PRURL}}<a href="{{$v.Links.PRURL}}">#{{$m.PR}}</a>{{else}}<span class="num">#{{$m.PR}}</span>{{end}}{{end}}{{if $m.Title}}{{$m.Title}}{{else if $m.PR}}pull request {{$m.PR}}{{else}}coverage report{{end}}</div>
+    <div class="refs">{{if $m.SHA}}<code>{{short7 $m.SHA}}</code>{{if $m.BaseRef}} into <code>{{$m.BaseRef}}</code>{{end}}{{if $m.Base}} at <code>{{short7 $m.Base}}</code>{{end}}{{end}}{{if $v.PushNo}}, push {{$v.PushNo}}{{end}}{{if not $v.At.IsZero}}, {{$v.At.UTC.Format "15:04 UTC, Jan 2"}}{{end}}</div>
+  </div>
+  <a class="ann ann-{{$v.Verdict}}" href="#attention"><span class="lamp"></span><b>{{$v.Heading}}</b><span>{{if eq $v.Verdict "fail"}}Coverage check fails{{else if eq $v.Verdict "none"}}nothing gated yet{{else if eq $v.Verdict "warn"}}informational{{else}}Coverage check passes{{end}}</span></a>
+</header>
+
+<main>
+<section class="eicas" aria-labelledby="h-layers">
+  <h2 id="h-layers">layers<span class="n">{{$v.StateCounts}}</span></h2>
+  <div class="legend" aria-hidden="true">
+    <span><svg viewBox="0 0 16 12"><line x1="0" x2="16" y1="6" y2="6" class="lg-fl" stroke="{{$.Tok "warning"}}" stroke-width="2"/></svg>floor</span>
+    <span><svg viewBox="0 0 16 12"><path d="M3 6 l9 -5 v10 z" class="lg-tg" fill="{{$.Tok "target"}}"/></svg>target</span>
+    <span><svg viewBox="0 0 16 12"><rect x="6" y="0" width="4" height="12" class="lg-bc" fill="{{$.Tok "caution"}}"/></svg>floor to target</span>
+    <span><svg viewBox="0 0 16 12"><rect x="6" y="0" width="4" height="12" class="lg-bo" fill="{{$.Tok "ok"}}"/></svg>at or past target</span>
+    <span><svg viewBox="0 0 16 12"><path d="M3 1 l8 5 l-8 5 z" class="lg-pt" fill="{{$.Tok "fill"}}"/></svg>now</span>
+  </div>
+  <div class="gauges">
+  {{- range .Groups}}
+    <div class="grp">
+      <div class="grp-h">{{.Name}}</div>
+      <div class="grp-row">
+      {{- range .Gauges}}
+        <figure class="{{.Class}}">
+          <svg viewBox="0 0 104 304" role="img" aria-label="{{.Aria}}">
+            <rect class="ro" x="8" y="4" width="88" height="34" rx="2" fill="none" stroke="{{$.Tok "ink-ghost"}}"/>
+            <text class="ro-v" x="52" y="28" text-anchor="middle" fill="{{$.Tok "ink"}}">{{pct2 .Pct}}</text>
+            <text class="mg" x="52" y="54" text-anchor="middle" fill="{{$.Tok "ink-soft"}}">{{.Margin}}</text>
+            {{- range .Ticks}}
+            <line class="tk" x1="{{if .Major}}37{{else}}41{{end}}" x2="46" y1="{{fx .Y}}" y2="{{fx .Y}}" stroke="{{$.Tok "ink-ghost"}}"/>
+            {{- end}}
+            <text class="tl" x="34" y="253" text-anchor="end">0</text>
+            <text class="tl" x="34" y="163" text-anchor="end">50</text>
+            <text class="tl" x="34" y="73" text-anchor="end">100</text>
+            <rect class="trk" x="46" y="70" width="14" height="180" fill="none" stroke="{{$.Tok "ink-ghost"}}"/>
+            {{- if .HasValue}}
+            <rect class="fil" x="46" y="{{fx .YNow}}" width="14" height="{{fx .HNow}}" fill="{{$.Tok "fill"}}"/>
+            {{- end}}
+            {{- if .HasTarget}}
+            <rect class="bo" x="63" y="70" width="3" height="{{fx .OkH}}" fill="{{$.Tok "ok"}}"/>
+            {{- if .HasFloor}}
+            <rect class="bc" x="63" y="{{fx .BandY}}" width="3" height="{{fx .BandH}}" fill="{{$.Tok "caution"}}"/>
+            {{- end}}
+            <path class="tg" d="M68 {{fx .YTarget}} l6 -4.5 v9 z" fill="{{$.Tok "target"}}"/>
+            <text class="tv" x="76" y="{{fx .YTargetText}}">{{trim (deref .Target)}}</text>
+            {{- end}}
+            {{- if .HasFloor}}
+            <line class="fl" x1="42" x2="67" y1="{{fx .YFloor}}" y2="{{fx .YFloor}}" stroke="{{$.Tok "warning"}}" stroke-width="2"/>
+            {{- end}}
+            {{- if .HasValue}}
+            <path class="pt" d="M35 {{fx .YPtr}} l7 4.5 l-7 4.5 z" fill="{{$.Tok "fill"}}"/>
+            {{- end}}
+            <text class="lb" x="52" y="272" text-anchor="middle" fill="{{$.Tok "ink"}}">{{.Label}}</text>
+            {{- range $i, $f := .Foot}}
+            <text class="pa" x="52" y="{{if $i}}301{{else}}288{{end}}" text-anchor="middle">{{$f}}</text>
+            {{- end}}
+          </svg>
+        </figure>
+      {{- end}}
+      </div>
+    </div>
+  {{- end}}
+  </div>
+  <details class="table">
+    <summary>Readouts as a table</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>layer</th><th>measures</th><th class="r">now</th><th class="r">floor</th><th class="r">±floor</th><th class="r">target</th><th class="r">patch</th><th>state</th></tr></thead>
+      <tbody>
+      {{- range $v.Rows}}
+        <tr{{if or (eq .State "untouched") (eq .State "notrun") (eq .State "carried")}} class="off"{{end}}><td>{{.Label}}</td><td>{{.Long}}{{if .Total}}, {{thou .Covered}} of {{unit .Metric .Total}}{{end}}</td><td class="r">{{pct2 .Pct}}</td>
+        <td class="r">{{floor .Floor}}</td><td class="r">{{signed .Delta}}</td><td class="r">{{target .Target}}</td>
+        <td class="r">{{if and .Patch .Patch.Total}}{{frac .Patch.Covered .Patch.Total}} ({{.Patch.Covered}}/{{.Patch.Total}}){{else}}—{{end}}</td>
+        <td class="{{if eq .State "fail"}}fail{{else if eq .State "warn"}}warn{{end}}">{{.Words}}</td></tr>
+      {{- end}}
+      </tbody>
+    </table>
+    </div>
+  </details>
+</section>
+
+<div class="lower">
+<section id="attention" aria-labelledby="h-att">
+  <h2 id="h-att">needs attention</h2>
+  <ol class="ecam">
+  {{- range $v.Problems}}
+    <li class="m m-warning">
+      <p class="m-h"><span class="sq"></span><span>{{.Subject}}</span><span class="lead"></span><span class="m-v">{{if .Row}}{{pct2 .Row.Pct}} / {{floor .Row.Floor}}{{else if .Failure.Measured}}{{pct2 .Failure.Measured}} / {{floor .Failure.Floor}}{{else if eq .Kind "endpoints"}}{{len .Violations}} gaps{{else}}FAIL{{end}}</span></p>
+      <p class="m-why">{{cap .Subject}} {{.Predicate $v.R.Patch.Target}}.{{with $v.PatchNote .}} {{.}}{{end}}</p>
+      {{- if or .Files .Violations (eq .Kind "floor") (eq .Kind "package") (eq .Kind "glob")}}
+      <ul class="acts">
+      {{- if .Repeat}}
+        <li class="plain">the same changed lines as {{.Repeat.Subject}} above</li>
+      {{- else}}{{range $f := .Files}}
+        <li><a href="#f{{$f.Idx}}-L{{(index $f.Uncovered 0).From}}">cover {{$f.Base}} {{range $i, $u := $f.Uncovered}}{{if lt $i 3}}{{if $i}}, {{end}}{{rlabel $u.Range}}{{end}}{{end}}</a><span class="lead"></span><span>{{plural $f.Missing "line" "lines"}}</span></li>
+      {{- end}}{{end}}
+      {{- range $i, $x := .Violations}}{{if lt $i 12}}
+        <li class="plain"><code>{{$x.ID}}</code>{{if $x.Detail}}: {{$x.Detail}}{{end}}</li>
+      {{- end}}{{end}}
+      {{- if or (eq .Kind "floor") (eq .Kind "package") (eq .Kind "glob")}}
+        <li class="plain">or lower it in {{$v.R.FloorsFile}}{{$v.InThisChange}}, with a reason</li>
+      {{- end}}
+      </ul>
+      {{- end}}
+    </li>
+  {{- end}}
+  {{- with $.Informational}}
+    <li class="m m-caution">
+      {{- if eq (len .) 1}}{{with index . 0}}
+      <p class="m-h"><span class="sq"></span><span>{{.Layer.ShortLabel}} patch under {{trim $v.Patch.Target}}%</span><span class="lead"></span><span class="m-v">{{frac .PL.Covered .PL.Total}} / {{trim $v.Patch.Target}}</span></p>
+      <p class="m-why">{{.PL.Covered}} of the {{plural .PL.Total "changed line" "changed lines"}} it measures ran. {{if $v.Patch.Until}}Informational until {{$v.Patch.Until}}, then it blocks the merge.{{else}}Informational: it does not fail the check.{{end}}</p>
+      {{- end}}{{else}}
+      <p class="m-h"><span class="sq"></span><span>patch under {{trim $v.Patch.Target}}% in {{len .}} layers</span><span class="lead"></span><span class="m-v">{{if $v.Patch.Until}}until {{$v.Patch.Until}}{{else}}informational{{end}}</span></p>
+      <p class="m-why">Changed lines no test reaches. {{if $v.Patch.Until}}Informational until {{$v.Patch.Until}}, then it blocks the merge.{{else}}Informational: it does not fail the check.{{end}}</p>
+      <ul class="acts caution">
+      {{- range .}}
+        <li><span>{{.Layer.ShortLabel}}</span><span class="lead"></span><span>{{frac .PL.Covered .PL.Total}}, {{.PL.Covered}} of {{.PL.Total}}</span></li>
+      {{- end}}
+      </ul>
+      {{- end}}
+    </li>
+  {{- end}}
+  {{- if eq $v.Verdict "none"}}
+    <li class="m m-target">
+      <p class="m-h"><span class="sq"></span><span>no floors yet</span><span class="lead"></span><span class="m-v">{{$v.RatchetCmd}}</span></p>
+      <p class="m-why">Nothing is gated. Run the ratchet and commit {{$v.R.FloorsFile}} to start the gate at today's numbers; from then on a floor only rises.</p>
+    </li>
+  {{- else if $v.Rises}}
+    <li class="m m-target">
+      <p class="m-h"><span class="sq"></span><span>{{plural $v.Rises "floor can rise" "floors can rise"}}</span><span class="lead"></span><span class="m-v">{{$v.RatchetCmd}}</span></p>
+      <ul class="acts">
+      {{- range $i, $e := $v.Ratchets}}{{if and (not $e.New) (lt $i 10)}}
+        <li><span>{{$e.Label}}</span><span class="lead"></span><span>{{$e.Moves}}</span></li>
+      {{- end}}{{end}}
+      </ul>
+    </li>
+  {{- end}}
+  {{- range $v.RowsIn "info"}}{{if .Primary}}
+    <li class="m m-info">
+      <p class="m-h"><span class="sq"></span><span>{{.Label}} is report-only</span><span class="lead"></span><span class="m-v">{{pct2 .Pct}}</span></p>
+      <p class="m-why">Measured and shown, never gated, never ratcheted, never merged into a gated row{{with .Layer.Description}}: {{.}}{{end}}.</p>
+    </li>
+  {{- end}}{{end}}
+  {{- with $v.RowsIn "untouched" "carried" "notrun"}}
+    <li class="m m-info">
+      <p class="m-h"><span class="sq"></span><span>not in play here</span><span class="lead"></span><span class="m-v">{{range $i, $r := .}}{{if $i}}, {{end}}{{$r.Label}}{{end}}</span></p>
+      <p class="m-why">Untouched rows were measured and hold; rows not run here were not affected by this change{{if $v.R.Baseline}}, and show {{$v.BaseRef}}'s numbers from <code>{{short7 $v.R.Baseline.SHA}}</code>{{end}}. Their floors still count wherever they run.</p>
+    </li>
+  {{- end}}
+  {{- if and (eq $v.Verdict "ok") (not $v.Rises)}}
+    <li class="m m-ok">
+      <p class="m-h"><span class="sq"></span><span>every floor holds</span><span class="lead"></span><span class="m-v">nothing to do</span></p>
+    </li>
+  {{- end}}
+  </ol>
+</section>
+
+<section aria-labelledby="h-patch">
+  <h2 id="h-patch">patch<span class="n">changed lines in this change</span></h2>
+  {{- if not $v.Patch}}
+  <p class="patch-note">No diff was analysed, so there is no patch coverage (analyze runs without --diff or --diff-base).</p>
+  {{- else if not $v.Patch.Overall.Total}}
+  <p class="patch-note">This change adds no line a gated layer can run.</p>
+  {{- else}}
+  <div class="patch-top">
+    <div class="readout">{{printf "%.1f" (deref $v.Patch.Overall.Pct)}}<small>%</small></div>
+    <p class="patch-note"><b>{{$v.Patch.Overall.Covered}} of {{$v.Patch.Overall.Total}}</b> changed lines ran under a test. The target is {{trim $v.Patch.Target}}%, {{if $v.Patch.Blocking}}and it blocks{{else if $v.Patch.Until}}informational until {{$v.Patch.Until}}{{else}}informational{{end}}.</p>
+  </div>
+  {{- end}}
+  {{- with .Push}}
+  <svg class="push" viewBox="0 0 280 100" role="img" aria-label="{{.Label}}">
+    <line class="ax" x1="12" x2="268" y1="76" y2="76" stroke="{{$.Tok "ink-ghost"}}"/>
+    <line class="tg" x1="12" x2="268" y1="{{fx .TargetY}}" y2="{{fx .TargetY}}" stroke="{{$.Tok "target"}}"/>
+    <text class="tv" x="14" y="{{fx .TargetY}}" dy="-5" text-anchor="start">target {{.Target}}</text>
+    {{- if gt (len .Points) 1}}
+    <path class="ln" d="{{.Path}}" stroke="{{$.Tok "ink"}}" fill="none"/>
+    {{- end}}
+    {{- $labels := .ShowPushLabels}}
+    {{- range $i, $p := .Points}}
+    <circle class="dot{{if $p.Last}} dot-last{{end}}" cx="{{fx $p.X}}" cy="{{fx $p.Y}}" r="3.2"/>
+    {{- if or $labels $p.Last}}
+    <text class="lv" x="{{fx $p.X}}" y="{{fx $p.Y}}" dy="{{if $p.Below}}14{{else}}-8{{end}}" text-anchor="middle">{{$p.Pct}}</text>
+    <text class="lb" x="{{fx $p.X}}" y="92" text-anchor="middle">push {{$p.N}}</text>
+    {{- end}}
+    {{- end}}
+  </svg>
+  {{- end}}
+  {{- if $v.Patch}}{{if $v.Patch.Rows}}
+  <table class="ptab">
+  {{- range $v.Patch.Rows}}
+    {{- $b := $.PatchBar .}}
+    <tr{{if eq .State "exempt"}} class="off"{{end}}><td>{{.Layer.ShortLabel}}{{if eq .State "exempt"}} <span class="dir">exempt</span>{{end}}</td><td><svg class="hm hm-{{.State}}" viewBox="0 0 160 8" role="img" aria-label="{{.Layer.ShortLabel}} patch {{frac .PL.Covered .PL.Total}}">
+      <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="{{$.Tok "ink-ghost"}}"/><rect class="fil" x="0" y="0" width="{{fx $b.Fill}}" height="8" fill="{{$.Tok "fill"}}"/>
+      <line class="tg" x1="{{fx $b.Target}}" x2="{{fx $b.Target}}" y1="-2" y2="10" stroke="{{$.Tok "target"}}"/></svg></td>
+      <td class="r">{{frac .PL.Covered .PL.Total}}</td><td class="r">{{.PL.Covered}}/{{.PL.Total}}</td></tr>
+  {{- end}}
+  </table>
+  {{- end}}{{end}}
+</section>
+</div>
+
+{{- with .Map}}
+<section id="map" aria-labelledby="h-map">
+  <h2 id="h-map">where the untested code lives<span class="n">{{.Layer}}, by package</span></h2>
+  <p class="note">Area is {{.Metric}}; fill is how far a package sits below its target. {{if .Prefix}}Paths are under <code>{{.Prefix}}/</code>. {{end}}Select a tile for its row.</p>
+  <div class="legend tm-legend" aria-hidden="true">
+    <span><i class="sw sw-ok"></i>at or above target</span><span><i class="sw sw-h1"></i>up to 10 short</span><span><i class="sw sw-h2"></i>10 to 25 short</span><span><i class="sw sw-h3"></i>more than 25 short</span><span><i class="sw sw-fail"></i>below its floor</span><span><i class="sw sw-touched"></i>touched by this change</span>
+  </div>
+  <div class="tm-box">
+    {{- range $.Treemaps}}{{template "treemap" .}}{{end}}
+  </div>
+</section>
+{{- end}}
+
+<section id="files" aria-labelledby="h-files">
+  <h2 id="h-files">changed files<span class="n">{{if $v.Patch}}{{len $v.Files}} with coverable changes, {{plural $v.Uncovered "line" "lines"}} without a test{{else}}no diff analysed{{end}}</span></h2>
+  {{- if $v.Files}}
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>file</th><th>counts toward</th><th>changed lines, in order</th><th class="r">ran</th><th>no test yet</th></tr></thead>
+    <tbody>
+    {{- range .Listings}}{{$f := .F}}
+      <tr><td class="file"><a href="#f{{$f.Idx}}">{{if $f.Dir}}<span class="dir">{{$f.Dir}}/</span>{{end}}<span class="fn">{{$f.Base}}</span></a></td>
+      <td>{{range $i, $t := $.Toward $f}}{{if $i}}<br>{{end}}{{if $t.Fails}}<span class="fail">{{$t.Label}}</span>{{else}}{{$t.Label}}{{end}}{{end}}</td>
+      <td>{{if .Cells}}<svg class="strip" width="{{.CellsW}}" height="14" viewBox="0 0 {{.CellsW}} 14" role="img" aria-label="{{$f.Ran}} of {{$f.Total}} changed lines ran">
+        {{- range .Cells}}<rect class="{{if .Unc}}u{{else}}c{{end}}" x="{{.X}}" y="0" width="5" height="14" rx="1" fill="{{if .Unc}}{{$.Tok "caution"}}{{else}}{{$.Tok "ok"}}{{end}}"/>{{end}}</svg>{{else}}<span class="dir">none coverable</span>{{end}}</td>
+      <td class="r">{{$f.Ran}}/{{$f.Total}}</td>
+      <td>{{if $f.Uncovered}}{{range $i, $u := $f.Uncovered}}{{if lt $i 6}}{{if $i}}, {{end}}<a class="ln" href="#f{{$f.Idx}}-L{{$u.From}}">{{rlabel $u.Range}}</a>{{end}}{{end}}{{if gt (len $f.Uncovered) 6}}, …{{end}}{{else}}<span class="dir">every changed line ran</span>{{end}}</td></tr>
+    {{- end}}
+    {{- with $v.R.Patch.Diff}}{{range .Deleted}}
+      <tr class="off"><td><span class="dir">{{.}}</span></td><td>deleted</td><td>—</td><td class="r">—</td><td>—</td></tr>
+    {{- end}}{{end}}
+    </tbody>
+  </table>
+  </div>
+  <p class="lgd"><span><i class="i-cov"></i>changed, ran</span><span><i class="i-unc"></i>changed, never ran</span><span><i class="i-old"></i>unchanged, never ran (an older gap)</span><span><i class="i-tgt"></i>the line a link took you to</span></p>
+  {{- range .Listings}}{{$f := .F}}
+  <details class="lst" id="f{{$f.Idx}}"{{if .Open}} open{{end}}>
+    <summary><span class="path">{{if $f.Dir}}<span class="dir">{{$f.Dir}}/</span>{{end}}<b>{{$f.Base}}</b></span><span class="chip{{if $f.AnyFailing}} fail{{end}}">{{range $i, $t := $.Toward $f}}{{if $i}} and {{end}}{{$t.Label}}{{end}}</span><span class="frac">{{$f.Ran}}/{{$f.Total}} changed lines ran</span></summary>
+    {{- if not $f.Source}}
+    <p class="nosrc">The source is not available (render with --source-root, a checkout of the measured commit, to see the code). Changed lines that never ran: {{range $i, $u := $f.Uncovered}}{{if $i}}, {{end}}{{rlabel $u.Range}}{{end}}{{if not $f.Uncovered}}none{{end}}.</p>
+    {{- end}}
+    <div class="code">
+    <table class="src">
+    {{- range .Rows}}
+      {{- if .Hunk}}
+      <tr class="hk"><td colspan="2">@@ {{.Start}}{{if .Func}}  {{.Func}}{{end}}</td></tr>
+      {{- else if not .No}}
+      <tr class="gap"><td colspan="2">{{plural .Gap "unchanged line" "unchanged lines"}} not shown</td></tr>
+      {{- else}}
+      <tr class="{{.Class}}" id="{{.ID}}"><td class="no"><a href="#{{.ID}}">{{.No}}</a></td><td class="cd">{{hl .Code $f.Lang}}</td></tr>
+      {{- end}}
+    {{- end}}
+    {{- if .Cut}}
+      <tr class="gap"><td colspan="2">{{plural .Cut "more line" "more lines"}} not shown: this file's listing is capped</td></tr>
+    {{- end}}
+    </table>
+    </div>
+  </details>
+  {{- end}}
+  {{- else if $v.Patch}}
+  <p class="note">No changed file is measured by any layer.</p>
+  {{- end}}
+  {{- with $v.R.Patch.Diff}}{{if .Unmeasured}}
+  <p class="note">Changed, but measured by no layer: {{range $i, $p := .Unmeasured}}{{if lt $i 30}}{{if $i}}, {{end}}<code>{{$p}}</code>{{end}}{{end}}{{if gt (len .Unmeasured) 30}}, and {{len .Unmeasured}} in all{{end}}.</p>
+  {{- end}}{{end}}
+</section>
+
+<div class="two">
+<section aria-labelledby="h-pk">
+  <h2 id="h-pk">packages touched<span class="n">{{len $v.Touched}}</span></h2>
+  {{- if $v.Touched}}
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>package</th><th class="r">floor</th><th class="r">now</th><th class="r">±floor</th><th class="r">patch</th><th></th></tr></thead>
+    <tbody>
+    {{- range $v.Touched}}
+      {{- $b := $.Bar .M.Pct .M.Floor .Target}}
+      <tr><td class="pk"><a href="#{{.ID}}">{{.G.Key}}</a><br><span class="dir">{{.Layer.ShortLabel}}{{with .Target}}, target {{trim .}}{{end}}</span></td><td class="r">{{floor .M.Floor}}</td><td class="r{{if .Failing}} fail{{end}}">{{pct2 .M.Pct}}</td><td class="r">{{signed .M.Delta}}</td><td class="r">{{if .PatchTotal}}{{frac .PatchCovered .PatchTotal}} {{.PatchCovered}}/{{.PatchTotal}}{{else}}—{{end}}</td>
+      <td><svg class="hm{{if .Failing}} hm-fail{{end}}" width="160" height="10" viewBox="0 -1 160 10" role="img" aria-label="{{.G.Key}} {{pct2 .M.Pct}}%, floor {{floor .M.Floor}}">
+        <rect class="trk" x="0" y="0" width="160" height="8" fill="none" stroke="{{$.Tok "ink-ghost"}}"/><rect class="fil" x="0" y="0" width="{{fx $b.Fill}}" height="8" fill="{{$.Tok "fill"}}"/>
+        {{- if $b.HasFloor}}<line class="fl" x1="{{fx $b.Floor}}" x2="{{fx $b.Floor}}" y1="-1" y2="9" stroke="{{$.Tok "warning"}}"/>{{end}}{{if $b.HasTarget}}<line class="tg" x1="{{fx $b.Target}}" x2="{{fx $b.Target}}" y1="-1" y2="9" stroke="{{$.Tok "target"}}"/>{{end}}</svg></td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  </div>
+  {{- else}}
+  <p class="note">This change touches no package of a measured layer.</p>
+  {{- end}}
+</section>
+{{- if $v.Ratchets}}
+<section aria-labelledby="h-rt">
+  <h2 id="h-rt">ratchet<span class="n">{{with $v.Rises}}{{plural . "floor can rise" "floors can rise"}}{{else}}{{plural (len $v.Ratchets) "floor can be created" "floors can be created"}}{{end}}</span></h2>
+  <p class="note">Run <code>{{$v.RatchetCmd}}</code> and commit <code>{{$v.R.FloorsFile}}</code>. These are the entries it rewrites:</p>
+  <pre class="diff" aria-label="{{$v.R.FloorsFile}} diff">{{range .RatchetLines}}<span class="{{.Class}}">{{.Text}}</span>{{end}}</pre>
+</section>
+{{- end}}
+</div>
+
+{{- with $v.Endpoints}}
+<section id="endpoints" aria-labelledby="h-ep">
+  <h2 id="h-ep">endpoints<span class="n">{{.Total}} registered{{with .Violations}}, {{len .}} broke the baseline{{end}}</span></h2>
+  <p class="big">{{range $i, $k := .Kinds}}{{if $i}} · {{end}}<b>{{$k.Best.Full}}</b> <span>of {{$k.Total}} {{$k.Label}} fully tested</span>{{end}}</p>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>kind</th>{{range .Layers}}<th class="r">{{.}}</th>{{end}}<th class="r">best</th><th>full, partial, none (best)</th><th>most missed</th></tr></thead>
+    <tbody>
+    {{- $e := .}}
+    {{- range .Kinds}}{{$k := .}}
+      {{- $s := $.Stack .Best.Full .Best.Partial .Best.None .Total}}
+      <tr><td>{{.Label}}</td>{{range $e.Layers}}<td class="r">{{(index $k.Layers .).Full}}/{{$k.Total}}</td>{{end}}<td class="r">{{.Best.Full}}/{{.Total}}</td>
+      <td><svg class="stk" width="200" height="10" viewBox="0 0 200 10" role="img" aria-label="{{.Best.Full}} full, {{.Best.Partial}} partial, {{.Best.None}} none">
+        <rect class="f" x="0" y="0" width="{{fx $s.F}}" height="10" fill="{{$.Tok "ok"}}"/><rect class="p" x="{{fx $s.PX}}" y="0" width="{{fx $s.P}}" height="10" fill="{{$.Tok "ink-soft"}}"/><rect class="z" x="{{fx $s.ZX}}" y="0.5" width="{{fx $s.Z}}" height="9" fill="none" stroke="{{$.Tok "warning"}}"/></svg></td>
+      <td>{{with .MostMissed}}{{.}} ({{$k.MostMissedCount}}){{else}}—{{end}}</td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  </div>
+  <details class="table">
+    <summary>By surface ({{len .Surfaces}})</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>surface</th><th class="r">endpoints</th>{{range .Layers}}<th class="r">{{.}}</th>{{end}}<th>full, partial, none (best)</th><th>most missed</th></tr></thead>
+      <tbody>
+      {{- $w := $.Widest}}
+      {{- range .Surfaces}}{{$g := .}}
+        {{- $s := $.Stack .Best.Full .Best.Partial .Best.None $w}}
+        <tr><td>{{.Label}}</td><td class="r">{{.Total}}</td>{{range $e.Layers}}<td class="r">{{(index $g.Layers .).Full}}</td>{{end}}
+        <td><svg class="stk" width="200" height="10" viewBox="0 0 200 10" role="img" aria-label="{{.Best.Full}} full, {{.Best.Partial}} partial, {{.Best.None}} none">
+          <rect class="f" x="0" y="0" width="{{fx $s.F}}" height="10" fill="{{$.Tok "ok"}}"/><rect class="p" x="{{fx $s.PX}}" y="0" width="{{fx $s.P}}" height="10" fill="{{$.Tok "ink-soft"}}"/><rect class="z" x="{{fx $s.ZX}}" y="0.5" width="{{fx $s.Z}}" height="9" fill="none" stroke="{{$.Tok "warning"}}"/></svg></td>
+        <td>{{with .MostMissed}}{{.}} ({{$g.MostMissedCount}}){{else}}—{{end}}</td></tr>
+      {{- end}}
+      </tbody>
+    </table>
+    </div>
+  </details>
+  {{- with .Violations}}
+  <p class="note fail-note">These broke the endpoint baseline (it only shrinks; an endpoint added after the freeze must be fully tested in some layer):</p>
+  <ul class="viol">
+  {{- range .}}
+    <li><code>{{.ID}}</code>{{if .Detail}}: {{.Detail}}{{end}}</li>
+  {{- end}}
+  </ul>
+  {{- end}}
+</section>
+{{- end}}
+
+{{- if $v.Packages}}
+<section id="packages" aria-labelledby="h-all">
+  <h2 id="h-all">every package<span class="n">most units without a test first</span></h2>
+  {{- range $v.Packages}}
+  <details class="table">
+    <summary>{{.Layer.Label}}: {{len .Rows}} packages{{with .Full}}, {{.}} at 100%{{end}}</summary>
+    <div class="wrap">
+    <table class="t">
+      <thead><tr><th>package</th><th class="r">{{ushort (index .Layer.Metrics 0)}}</th><th class="r">without a test</th><th class="r">now</th><th class="r">floor</th><th class="r">target</th><th>state</th></tr></thead>
+      <tbody>
+      {{- range .Rows}}
+        <tr id="{{.ID}}"><td class="nw">{{.G.Key}}</td><td class="r">{{thou .M.Total}}</td><td class="r">{{thou (sub .M.Total .M.Covered)}}</td><td class="r">{{pct2 .M.Pct}}</td><td class="r">{{floor .M.Floor}}</td><td class="r">{{target .Target}}</td><td class="{{if .Failing}}fail{{end}}">{{if .Failing}}below floor{{else if .M.Floor}}holds{{else}}no floor{{end}}{{if .Touched}}, touched{{end}}</td></tr>
+      {{- end}}
+      </tbody>
+    </table>
+    </div>
+  </details>
+  {{- end}}
+</section>
+{{- end}}
+
+{{- if or $v.Exclusions $v.Scope}}
+<section aria-labelledby="h-ex">
+  <h2 id="h-ex">left out of the denominator<span class="n">{{$v.ExcludedSummary}}</span></h2>
+  {{- if $v.Exclusions}}
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>glob</th><th>why</th><th class="r">size</th></tr></thead>
+    <tbody>
+    {{- range $v.Exclusions}}
+      <tr><td><code>{{.Glob}}</code></td><td>{{.Reason}}</td><td class="r">{{range $i, $s := .Sizes}}{{if $i}}<br>{{end}}{{thou $s.N}} {{ushort $s.Metric}} in {{$s.Layer}}{{else}}nothing measured{{end}}</td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  </div>
+  {{- end}}
+  {{- if $v.Scope}}
+  <p class="note">Layer boundaries: what each layer's own include and exclude keep out.</p>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>layer</th><th>rule</th><th class="r">size</th></tr></thead>
+    <tbody>
+    {{- range $v.Scope}}
+      <tr><td>{{.Layer.ShortLabel}}</td><td>{{if .Glob}}exclude <code>{{.Glob}}</code>{{else}}not included{{end}}</td><td class="r">{{thou .Size.N}} {{ushort .Size.Metric}}</td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  </div>
+  {{- end}}
+</section>
+{{- end}}
+
+{{- if $v.Measured}}
+<section aria-labelledby="h-hm">
+  <h2 id="h-hm">how this was measured</h2>
+  <div class="wrap">
+  <table class="t">
+    <thead><tr><th>layer</th><th>how</th><th>inputs</th></tr></thead>
+    <tbody>
+    {{- range $v.Measured}}
+      <tr><td>{{.ShortLabel}}</td><td>{{if .Description}}{{.Description}}{{else}}{{.Format}}{{end}}{{with .Modes}} (mode {{join . ", "}}){{end}}</td><td>{{range $i, $in := .Inputs}}{{if $i}}<br>{{end}}<code>{{$in}}</code>{{end}}</td></tr>
+    {{- end}}
+    {{- with $v.R.Patch.Diff}}
+      <tr><td>patch</td><td>the diff against the base: {{.Files}} files, {{plural (int64 .AddedLines) "line" "lines"}} added</td><td></td></tr>
+    {{- end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+{{- end}}
+
+<footer>
+  <span>coverreport {{$v.Version}}, brand {{$v.Brand.Name}}</span>
+  {{- if $v.Links.Run}}<span><a href="{{$v.Links.Run}}">the run</a></span>{{end}}
+  <span>floors: {{if $v.Links.Blob $v.R.FloorsFile}}<a href="{{$v.Links.Blob $v.R.FloorsFile}}">{{$v.R.FloorsFile}}</a>{{else}}{{$v.R.FloorsFile}}{{end}}</span>
+  <span>this page makes no network requests and runs no scripts</span>
+</footer>
+</main>
+</body>
+</html>
+{{- define "treemap"}}{{$t := .T}}{{$p := .P}}
+<svg class="tm {{.Class}}" viewBox="0 0 {{fx $t.W}} {{fx $t.H}}" role="img" aria-labelledby="tm-{{.ID}}-title">
+  <title id="tm-{{.ID}}-title">Packages by size, filled by distance below target. The table under "every package" lists the same numbers.</title>
+  {{- range $t.Groups}}{{if .Header}}
+  <text class="tm-group-label" x="{{fx (addf .X 6)}}" y="{{fx (addf .Y 15)}}" fill="{{$p.Tok "ink"}}">{{.Name}}/{{if .LabelFit}} <tspan class="tm-group-pct">{{.Pct}}</tspan>{{end}}</text>
+  {{- end}}{{end}}
+  {{- range $t.Tiles}}
+  <a href="#{{.Row.ID}}"><title>{{.Title}}</title><rect class="tm-tile tm-{{.Heat}}" x="{{fx .X}}" y="{{fx .Y}}" width="{{fx .W}}" height="{{fx .H}}" rx="3" fill="{{$p.Tok (printf "tm-%s" .Heat)}}"/>
+    {{- if .Row.Failing}}<rect class="tm-fail" x="{{fx .Outline.X}}" y="{{fx .Outline.Y}}" width="{{fx .Outline.W}}" height="{{fx .Outline.H}}" rx="2" fill="none" stroke="{{$p.Tok "warning"}}" stroke-width="2"/>{{else if .Row.Touched}}<rect class="tm-touched" x="{{fx .Outline.X}}" y="{{fx .Outline.Y}}" width="{{fx .Outline.W}}" height="{{fx .Outline.H}}" rx="2" fill="none" stroke="{{$p.Tok "target"}}" stroke-width="2"/>{{end}}
+    {{- if .ShowName}}<text class="tm-t tf-{{.Heat}}" x="{{fx (addf .X 8)}}" y="{{fx (addf .Y 17)}}" fill="{{$p.Tok (printf "tm-%s-fg" .Heat)}}">{{.Label}}</text>{{end}}
+    {{- if .ShowPct}}<text class="tm-s tf-{{.Heat}}" x="{{fx (addf .X 8)}}" y="{{fx (addf .Y 33)}}" fill="{{$p.Tok (printf "tm-%s-fg" .Heat)}}">{{pct2 .Row.M.Pct}}%</text>{{end}}
+    {{- if .ShowLen}}<text class="tm-x tf-{{.Heat}}" x="{{fx (addf .X 8)}}" y="{{fx (addf .Y 49)}}" fill="{{$p.Tok (printf "tm-%s-fg" .Heat)}}">{{unit (index .Row.Layer.Metrics 0) .Row.M.Total}}</text>{{end}}</a>
+  {{- end}}
+</svg>
+{{- end}}

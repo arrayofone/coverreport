@@ -94,3 +94,40 @@ func TestInvalidConfigs(t *testing.T) {
 		}
 	}
 }
+
+// The presentation keys: defaults from the id, and refusals for values
+// that would break a grid, a table or the page's stylesheet.
+func TestPresentationKeys(t *testing.T) {
+	layer := func(extra string) string {
+		return `{"version":1,"layers":[{"id":"go-unit","format":"go","inputs":["a.out"],"metrics":["statements"]` + extra + `}]}`
+	}
+	r, err := Parse([]byte(layer("")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if l := r.Layer("go-unit"); l.ShortLabel != "go unit" || l.Group != "go" || l.Treemap || r.RatchetCommand != DefaultRatchetCommand || r.Brand != nil {
+		t.Errorf("defaults: %q %q %v %q %v", l.ShortLabel, l.Group, l.Treemap, r.RatchetCommand, r.Brand)
+	}
+	r, err = Parse([]byte(`{"version":1,"ratchet_command":"make coverage-ratchet","patch":{"informational_until":"2026-10-05"},
+	  "brand":{"name":"handipay","dark":{"ok":"#00e055"}},
+	  "layers":[{"id":"go-live","short_label":"go unit+pg","group":"go","treemap":true,"format":"go","inputs":["a.out"],"metrics":["statements"]}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if l := r.Layer("go-live"); l.ShortLabel != "go unit+pg" || !l.Treemap || r.InformationalUntil != "2026-10-05" || r.Brand.Name != "handipay" || r.RatchetCommand != "make coverage-ratchet" {
+		t.Errorf("explicit: %+v", r)
+	}
+	for name, doc := range map[string]string{
+		"short label too long": layer(`,"short_label":"an extremely long label"`),
+		"pipe in a label":      layer(`,"label":"a | b"`),
+		"backtick in group":    layer("," + `"group":"g` + "`" + `"`),
+		"bad soak date":        `{"version":1,"patch":{"informational_until":"next week"},"layers":[{"id":"a","format":"go","inputs":["a"],"metrics":["statements"]}]}`,
+		"bad brand token":      `{"version":1,"brand":{"dark":{"ok":"red;}"}},"layers":[{"id":"a","format":"go","inputs":["a"],"metrics":["statements"]}]}`,
+		"unknown brand key":    `{"version":1,"brand":{"colour":"red"},"layers":[{"id":"a","format":"go","inputs":["a"],"metrics":["statements"]}]}`,
+		"multi-line ratchet":   `{"version":1,"ratchet_command":"a\nb","layers":[{"id":"a","format":"go","inputs":["a"],"metrics":["statements"]}]}`,
+	} {
+		if _, err := Parse([]byte(doc)); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+}

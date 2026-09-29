@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "generated_from": "3f2a9c1d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+  "classes": ["happy", "authn", "authz", "validation", "payload", "notfound", "conflict", "ratelimit", "dependency", "method", "invariant"],
+  "surfaces": {
+    "svc-api": { "label": "svc-api (Go)" },
+    "app": { "label": "app (Next.js)" }
+  },
+  "endpoints": [
+    { "id": "svc-api:GET /sums", "surface": "svc-api", "kind": "route", "file": "libs/go/svc/api/routes.go:12",
+      "applicable": ["happy", "authn", "method"], "na": { "authz": "N/A: public read" },
+      "layers": { "unit": { "classes": ["happy", "authn", "method"], "status": "full" }, "e2e": { "classes": ["happy"], "status": "partial" } },
+      "best": "full" },
+    { "id": "svc-api:POST /sums", "surface": "svc-api", "kind": "route", "file": "libs/go/svc/api/routes.go:13",
+      "applicable": ["happy", "authn", "authz", "validation", "dependency"],
+      "layers": { "unit": { "classes": ["happy", "validation"], "status": "partial" }, "integration": { "classes": ["happy", "authn", "dependency"], "status": "partial" } },
+      "best": "partial" },
+    { "id": "svc-api:DELETE /sums/{id}", "surface": "svc-api", "kind": "route", "file": "libs/go/svc/api/routes.go:14",
+      "applicable": ["happy", "authn", "authz", "notfound", "dependency"],
+      "layers": { "unit": { "classes": ["happy", "notfound"], "status": "partial" } },
+      "best": "partial" },
+    { "id": "svc-api:event sum.done", "surface": "svc-api", "kind": "event", "file": "libs/go/svc/api/events.go:30",
+      "applicable": ["happy", "payload", "dependency"],
+      "layers": {},
+      "best": "none" },
+    { "id": "app:GET /api/version", "surface": "app", "kind": "route", "file": "apps/web/src/app/api/version/route.ts:1",
+      "applicable": ["happy"],
+      "layers": { "unit": { "classes": ["happy"], "status": "full" }, "e2e": { "classes": ["happy"], "status": "full" } },
+      "best": "full" },
+    { "id": "app:page /pay/[invoiceNumber]", "surface": "app", "kind": "page", "file": "apps/web/src/app/pay/[invoiceNumber]/page.tsx:1",
+      "applicable": ["happy", "notfound", "dependency"],
+      "layers": { "unit": { "classes": ["happy"], "status": "partial" }, "e2e": { "classes": ["happy", "notfound"], "status": "partial" } },
+      "best": "partial" },
+    { "id": "app:action createSum", "surface": "app", "kind": "action", "file": "apps/web/src/actions/sums.ts:4",
+      "applicable": ["happy", "authn", "validation", "dependency"],
+      "layers": { "unit": { "classes": ["happy", "authn", "validation", "dependency"], "status": "full" } },
+      "best": "full" }
+  ],
+  "summary": {},
+  "baseline": { "violations": [] }
+}

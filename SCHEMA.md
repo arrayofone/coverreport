@@ -1,6 +1,6 @@
 # coverreport file formats
 
-This is the reference for the four files coverreport reads and writes. It is
+This is the reference for the files coverreport reads and writes. It is
 written so a repository can adopt them without reading the code: every key,
 every default, every rule the tool enforces, and the exact arithmetic behind a
 pass or a fail.
@@ -11,6 +11,8 @@ pass or a fail.
 | `coverage/floors.json` | the ratchet (`coverreport ratchet`), reviewed in a commit | the minimum each layer, package and glob may fall to |
 | `coverage/exclude.txt` | a human | files taken out of every denominator, each with a reason |
 | `report.json` | `coverreport analyze` | everything a renderer (PR comment, job summary, HTML page) needs |
+| `endpoints.json` | the endpoint registry (another tool; optional input) | per endpoint, the rubric classes each test layer proves |
+| `comment.md`, `summary.md`, `annotations.txt`, `report.html` | `coverreport render` | the four surfaces a CI job publishes |
 
 All paths inside these files are **repo-relative, slash-separated and clean**
 (`libs/go/x`, never `./libs/go/x/`, never absolute). The config's `floors` and
@@ -20,7 +22,8 @@ All paths inside these files are **repo-relative, slash-separated and clean**
 Contents: [Globs](#globs) · [config.json](#coverageconfigjson) ·
 [floors.json](#coveragefloorsjson) · [exclude.txt](#coverageexcludetxt) ·
 [How numbers are computed](#how-numbers-are-computed) ·
-[report.json](#reportjson)
+[report.json](#reportjson) · [endpoints.json](#endpointsjson-input) ·
+[Rendered surfaces](#rendered-surfaces)
 
 ---
 
@@ -136,8 +139,11 @@ widen a layer), as is trailing data after the object.
 | `patch.target` | number 0-100 | `80` | patch coverage target, percent, inclusive |
 | `patch.min_lines` | int >= 0 | `5` | a layer with fewer changed coverable lines than this is `exempt` |
 | `patch.blocking` | bool | `false` | whether a patch miss is a failure (exit 1) or informational |
+| `patch.informational_until` | `YYYY-MM-DD` | none | when a non-blocking patch gate is planned to start blocking. Shown in the rendered copy ("informational until 2026-10-05"); it changes nothing by itself, `blocking` still decides |
 | `lowest_files` | int >= 0 | `25` | how many files each layer's `lowest_files` list keeps |
 | `layers` | array | required, non-empty | the rows of the table, in display order |
+| `brand` | object | the neutral theme | how the rendered surfaces look; see [Brand](#brand). Presentation only |
+| `ratchet_command` | string | `coverreport ratchet` | what the surfaces tell a reader to run to raise the floors (`make coverage-ratchet`). One line, no backticks |
 
 Why `sets`: a boundary between two layers (the SQL adapter files leave the
 unit row and form their own) must be written once. Two hand-copied lists drift,
@@ -164,13 +170,82 @@ from both.
 | `packages.min_size` | int >= 0 | `0` | directories with fewer primary-metric units than this get no NEW floor (existing floors are still checked) |
 | `packages.targets` | object | `{}` | a target applied to every directory row |
 | `globs[]` | array | `[]` | aggregate rows: `{ "glob": ..., "label"?: ..., "targets"?: {...} }`. Each is always reported and, when measured, ratcheted |
+| `short_label` | string, at most 16 characters | the id, dashes as spaces | the name in tight places: a gauge, the 13-column HUD cell (`go unit+pg`). A layer with several metrics shows as `<short_label> <metric>` (`app lines`, `app branches`) |
+| `group` | string | the id up to its first dash | adjacent layers with the same group sit under one heading on the page (`go-unit`, `go-sql`, `go-live` and `go-e2e` all default to `go`) |
+| `treemap` | bool | `false` | draw this layer's packages as the page's treemap. With no layer set, the measured gated layer with the largest primary-metric total and at least two packages is drawn |
 
 Validation errors (all fatal, exit 2): an unsupported version; an unknown key;
 a bad or duplicate id; an unknown format; a metric the format cannot measure;
 a target for a metric the layer does not measure, or outside 0-100; an invalid
 glob; an unknown `@set`; `paths` on a go layer; a relative `paths.strip`; a
 `paths.prefix` leaving the repository; `report_only` with `packages.floors`; a
-glob row listed twice.
+glob row listed twice; a `label`, `short_label` or `group` containing `|`, a
+backtick, `<`, `>` or a newline; a `short_label` over 16 characters; a
+`patch.informational_until` that is not a date; a `brand` that fails the rules
+below.
+
+### Brand
+
+```json
+"brand": {
+  "name": "handipay",
+  "mono": "\"Intel One Mono\", ui-monospace, \"SF Mono\", SFMono-Regular, Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+  "sans": "\"IBM Plex Sans\", system-ui, -apple-system, \"Segoe UI\", sans-serif",
+  "dark": {
+    "bg": "#0c0e0c", "panel": "#121512", "glass": "#080a08",
+    "bezel": "rgba(255, 255, 255, 0.085)", "bezel-2": "rgba(255, 255, 255, 0.16)",
+    "ink": "#ecefe9", "ink-soft": "#8d958c", "ink-ghost": "#59615a", "fill": "#d9ded6", "mark": "#ecefe9",
+    "ok": "#00e055", "caution": "#ffb627", "warning": "#ff5a4e", "target": "#5ad8ff",
+    "t-ok": "rgba(0, 224, 85, 0.075)", "t-caution": "rgba(255, 182, 39, 0.14)",
+    "t-warning": "rgba(255, 90, 78, 0.14)", "t-target": "rgba(90, 216, 255, 0.16)",
+    "grid-a": "rgba(255, 255, 255, 0.022)", "grid-b": "transparent",
+    "tm-ok": "#171b17", "tm-ok-fg": "#8d958c", "tm-h1": "#3b2f14", "tm-h1-fg": "#ecefe9",
+    "tm-h2": "#7a5a16", "tm-h2-fg": "#ecefe9", "tm-h3": "#ffb627", "tm-h3-fg": "#0c0e0c"
+  },
+  "light": {
+    "bg": "#f6f4ee", "panel": "#fffefa", "glass": "#fffefa",
+    "bezel": "#e3dfd2", "bezel-2": "#cfcaba",
+    "ink": "#21251f", "ink-soft": "#6e756a", "ink-ghost": "#9aa093", "fill": "#2e342c", "mark": "#21251f",
+    "ok": "#0b7a3c", "caution": "#9a5a00", "warning": "#b3261e", "target": "#0a6a84",
+    "t-ok": "rgba(11, 122, 60, 0.07)", "t-caution": "rgba(214, 140, 0, 0.16)",
+    "t-warning": "rgba(179, 38, 30, 0.09)", "t-target": "rgba(10, 106, 132, 0.11)",
+    "grid-a": "rgba(92, 122, 100, 0.055)", "grid-b": "rgba(92, 122, 100, 0.035)",
+    "tm-ok": "#efece3", "tm-ok-fg": "#6e756a", "tm-h1": "#f3e0bb", "tm-h1-fg": "#21251f",
+    "tm-h2": "#deb46a", "tm-h2-fg": "#21251f", "tm-h3": "#9a5a00", "tm-h3-fg": "#fffefa"
+  }
+}
+```
+
+That is handipay's block: the Paper (light) and Dim (dark) tokens of its
+landing site, with the three state colours Paper/Dim does not define (amber,
+red, cyan) added. Every key is optional; a missing token takes the neutral
+default's value for the same scheme (GitHub's own Primer greys and state
+colours), so a repository can restyle three colours and keep the rest.
+Markdown carries no colour, so the comment and summary use only `name`.
+
+| Key | Meaning |
+|:--|:--|
+| `name` | the wordmark and the first word of every heading ("handipay coverage"), used exactly as written. Default: the repository's short name, else `coverage`. At most 40 characters, no markdown or HTML metacharacters |
+| `mono`, `sans` | CSS `font-family` lists (family names, quotes, commas, spaces only). The page embeds no fonts: name faces readers may have and end in a generic family |
+| `dark`, `light` | token name to colour. Dark is the page's default scheme; light applies under `prefers-color-scheme: light` |
+
+A colour is a `#rgb`/`#rgba`/`#rrggbb`/`#rrggbbaa` literal, one of the CSS
+colour functions `rgb() rgba() hsl() hsla() hwb() lab() lch() oklab() oklch()`
+with only numbers, units, `%`, `/`, commas and spaces inside, or
+`transparent`/`currentColor`. Anything else (`var()`, `url()`, `color-mix()`,
+a `;` or `}`) is refused: the values are written into the page's stylesheet.
+
+| Token | Colours |
+|:--|:--|
+| `bg`, `panel`, `glass` | the page, the two framed displays and tables, the gauge faces and code blocks |
+| `bezel`, `bezel-2` | hairlines and borders, light and strong |
+| `ink`, `ink-soft`, `ink-ghost` | text, secondary text, scales and decoration (never body text) |
+| `fill` | a gauge's "now" tape before a state recolours it |
+| `mark` | the wordmark |
+| `ok`, `caution`, `warning`, `target` | the four states: holds, needs a test, below a floor, a goal or the line a link jumped to. Colour means state and nothing else |
+| `t-ok`, `t-caution`, `t-warning`, `t-target` | translucent washes of the four (listing rows, the annunciator, `:target`) |
+| `grid-a`, `grid-b` | the canvas grid (dark: a fine masked grid; light: 120/24 px graph paper) |
+| `tm-ok`, `tm-h1`, `tm-h2`, `tm-h3` and each `-fg` | treemap tiles at or above target, up to 10, 10 to 25, and more than 25 points below it, and their text |
 
 ### Go paths
 
@@ -390,7 +465,7 @@ never `null` (empty lists are `[]`).
 | `version` | int | `1` |
 | `tool` | string | `"coverreport"` |
 | `generated_at` | RFC 3339 UTC | analysis time; `SOURCE_DATE_EPOCH` overrides it for reproducible output |
-| `metadata` | object | `repo`, `pr` (int), `sha`, `base`, `head_ref`, `base_ref`, `run_url`: from flags or the GitHub Actions environment; each omitted when unknown |
+| `metadata` | object | `repo`, `pr` (int), `sha`, `base`, `head_ref`, `base_ref`, `run_url`: from flags or the GitHub Actions environment; `title` and `head_sha` from flags or the `pull_request` payload at `$GITHUB_EVENT_PATH`; each omitted when unknown |
 | `status` | `pass` / `fail` | fail iff `failures` is non-empty |
 | `failures[]` | [Failure](#failure) | every reason for `fail` |
 | `tolerance_pts` | number | from floors.json |
@@ -403,12 +478,19 @@ never `null` (empty lists are `[]`).
 | `ratchet[]` | [Change](#change) | every floor that can rise or be created now |
 | `stale_floors[]` | `{scope, layer, key}` | package/glob floors matching nothing measured |
 | `warnings[]` | string | non-fatal problems, in a stable order |
+| `brand` | object | the config's `brand` block, verbatim (omitted when none) |
+| `ratchet_command` | string | the config's `ratchet_command` |
+| `baseline` | object | `{file, sha, generated_at}` of the `analyze --baseline` report layers were carried from (omitted without one) |
+| `endpoints` | [Endpoints](#endpoints) | the endpoint registry's summary (`analyze --endpoints`; omitted without one) |
+
+The last four were added after version 1 shipped; they are optional, so the
+version stays 1 and a renderer that ignores them still reads the report.
 
 ### Failure
 
 | Field | Meaning |
 |:--|:--|
-| `scope` | `layer`, `package`, `glob`, `patch` or `required` |
+| `scope` | `layer`, `package`, `glob`, `patch`, `required` or `endpoints` (one per endpoint-registry baseline violation; `key` is the endpoint id, `layer` is empty) |
 | `layer` | layer id |
 | `key` | the directory or glob (package/glob scope) |
 | `metric` | the metric (floor scopes) |
@@ -432,6 +514,8 @@ never `null` (empty lists are `[]`).
 | `globs[]` | [Group](#group) per glob row, config order, then floors-only globs sorted |
 | `lowest_files[]` | [FileSummary](#filesummary): up to `lowest_files` files with the most uncovered primary units, ties broken by the lower percentage, then the path. Files with nothing uncovered are never listed |
 | `scope[]` | [ScopeExclusion](#scopeexclusion) |
+| `short_label`, `group`, `treemap` | from the config (defaults applied) |
+| `carried` | on a `not_measured` layer when the `--baseline` report measured it: `{sha, totals}` with `totals` metric to `{covered, total, pct}`. Display only: the layer's `status` stays `not_measured`, and carried numbers are never checked or ratcheted (they describe another commit) |
 
 A `not_measured` layer still carries `totals` with its floors and targets (and
 `covered`/`total` of 0), so a renderer can show "not affected" next to the
@@ -478,7 +562,7 @@ order, `@set`s expanded, including globs that removed nothing); `glob`;
 | Field | Meaning |
 |:--|:--|
 | `status` | `pass`, `fail`, `exempt` or `not_computed` (no diff given) |
-| `target`, `min_lines`, `blocking` | from the config |
+| `target`, `min_lines`, `blocking`, `informational_until` | from the config |
 | `overall` | `{covered, total, pct}`: the union over gated layers |
 | `layers[]` | one per layer, config order: `layer`, `label`, `covered`, `total`, `pct`, `status` (`pass`, `fail`, `exempt`, `report_only`, `not_measured`), `files[]` |
 | `layers[].files[]` | each changed file with added lines that the layer contains: `path`, `covered`, `total`, `pct` (changed coverable lines), `changed` (every added line), `uncovered_changed`, and the WHOLE file's `covered_lines` / `uncovered_lines`, so a renderer can annotate the full file without the artifacts |
@@ -488,6 +572,17 @@ order, `@set`s expanded, including globs that removed nothing); `glob`;
 
 `scope` (`layer`, `package`, `glob`), `layer`, `key` (package/glob),
 `metric`, `from` (omitted for a new entry), `to`.
+
+### Endpoints
+
+| Field | Meaning |
+|:--|:--|
+| `file` | the endpoints.json read, as given to `--endpoints` |
+| `generated_from` | the registry's `generated_from` (the commit it was built at) |
+| `total` | how many endpoints the registry lists |
+| `layers[]` | the test layers the registry uses: `unit`, `integration`, `e2e` in that order, then any other, sorted |
+| `kinds[]`, `surfaces[]` | completeness rows, one per endpoint kind and one per surface, in the registry's order: `key`, `label` (`routes`; the surface's label), `total`, `best` (`{full, partial, none}`: each endpoint once, at its best status), `layers` (layer to `{full, partial, none}`; an endpoint a layer never mentions counts as `none` there), `most_missed` and `most_missed_count` (the applicable class most often missing from the endpoints' best layer; ties go to the registry's class order) |
+| `violations[]` | the registry's `baseline.violations`, `{id, detail}`; each is also a [Failure](#failure) of scope `endpoints` |
 
 ### Example
 
@@ -646,3 +741,95 @@ unmeasured layer, one patch layer):
   "warnings": ["coverage/floors.json: layers.retired names no configured layer; not checked"]
 }
 ```
+
+---
+
+## endpoints.json (input)
+
+The endpoint registry's output, shared with the sibling repositories. Only
+what the summary above needs is read; unknown fields are ignored (the
+producer grows the contract additively), but these are checked, so a
+half-written file fails `analyze` instead of rendering zeros:
+
+| Field | Rule |
+|:--|:--|
+| `version` | must be `1` |
+| `endpoints[]` | non-empty (the registry's enumerators each have a minimum-count floor, so an empty list is a broken producer). Each needs a unique `id`, a `surface` and a `kind`; `best` and every `layers.<name>.status` are `full`, `partial` or `none` |
+| `endpoints[].applicable`, `.layers.<name>.classes` | used for "most missed" |
+| `surfaces.<id>.label` | the surface's display name (default: the id) |
+| `classes` | the class order that breaks "most missed" ties |
+| `baseline.violations[]` | `{id, detail}`; each needs an `id` |
+
+`analyze --endpoints <file>` where the file does not exist is a warning
+(the rows are omitted): the registry's job may not have run. A file that
+exists but is invalid is an error.
+
+---
+
+## Rendered surfaces
+
+`coverreport render --report report.json --out <dir>` writes four files.
+Every decision behind them (row states, the verdict, which lines never ran,
+which ranges are annotated) is made once, from the report, so they cannot
+disagree.
+
+| File | What | Limit handled |
+|:--|:--|:--|
+| `comment.md` | the sticky PR comment | GitHub's 65,536 characters (counted as UTF-16 units, with a 1,024 margin) |
+| `summary.md` | the job summary (`>> $GITHUB_STEP_SUMMARY`) | 1 MiB per step (16 KiB margin) |
+| `annotations.txt` | workflow commands, one per line (`cat` it in the job) | at most 10, on changed lines that never ran only; GitHub shows 10 per level per step |
+| `report.html` | one self-contained page | none, but each file's listing is capped at 1,500 lines |
+
+**Row states.** Each gauge (one per layer and metric) is in one state, and
+the HUD's first character is its state, so GitHub's `diff` highlighter
+colours it: `+` ok (holds its floor), `!` warn (holds, but the layer's patch
+coverage is under target), `-` FAIL (below its floor), and `#` for everything
+not gated here: `info` (report-only), untouched (measured, holds, and the
+change added no line it measures), carried (not run, numbers from the
+baseline), not run, new (no floor yet).
+
+**The sticky comment.** Its first line is exactly `<!-- coverreport:v1 -->`;
+`coverreport comment` finds the comment to update by it. Its second line is
+the push history:
+
+```
+<!-- coverreport:state {"n":4,"pushes":[["8e41d07",58.3],["c2b19f4",76.9],["5d0e7aa",83.1],["3f2a9c1",86.4]]} -->
+```
+
+`n` is the number of pushes so far; `pushes` the last 30 as
+`[short head SHA, overall patch %]`. `render --previous <file>` reads it back
+from the comment being replaced, appends this push (or replaces the last
+point when the head SHA is the same, a re-run) and writes it into the new
+comment. A missing or unreadable state is an empty history, never an error.
+Nothing is stored anywhere else.
+
+**Shortening.** When the comment is over its limit, sections are dropped in
+this order until it fits: the snippets of files that hold their floors (last
+first), how-measured and the exclusions, the packages, ratchet and endpoint
+blocks, the snippets of files that break a floor, then the changed-lines
+table shrinks to 10 and then 3 rows. The summary drops, in order, the
+snippets of files that hold their floors, the lowest files, exclusions and
+how-measured, the snippets of files that break a floor, the package and glob
+tables, then the ratchet and endpoint blocks, and its table shrinks to 50 and
+then 10 rows. The heading, the alert, the HUD and the footer are never
+dropped, and a note says what was left out and links the page. As a last resort the body is cut at a line boundary with every fence
+and `<details>` it cut through closed.
+
+**Annotations.** One per range of changed lines that never ran: ranges that
+count toward a failure first (level `warning`), then the rest (`notice`),
+longest first. The title says what and why; the message names the enclosing
+function, quotes the first line (with `--source-root`), states the
+consequence, and ends with the page's URL and line anchor when
+`--artifact-url` is given.
+
+**The page** makes no network request and runs no script: one inline
+`<style>` (the brand's tokens, then the static rules), no `style` attribute,
+no `<script>`, `<link>`, `<img>`, `@import` or `@font-face`, and every
+`http(s)://` URL is an `<a href>` a reader clicks. Charts are inline SVG whose
+geometry is attributes and whose colours are classes, with the dark tokens
+repeated as presentation attributes so a CSP that blocks inline styles still
+leaves readable instruments. Every changed line has an id, `f<file>-L<line>`
+(`#f3-L120`); the annotations link there. Light and dark follow
+`prefers-color-scheme`; the one animation (the gauges' power-on sweep) is off
+under `prefers-reduced-motion`.
+

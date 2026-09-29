@@ -10,10 +10,12 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +26,7 @@ import (
 
 	"github.com/DarrenBangsund/coverreport/internal/config"
 	"github.com/DarrenBangsund/coverreport/internal/diff"
+	"github.com/DarrenBangsund/coverreport/internal/endpoints"
 	"github.com/DarrenBangsund/coverreport/internal/exclude"
 	"github.com/DarrenBangsund/coverreport/internal/floors"
 	"github.com/DarrenBangsund/coverreport/internal/render/text"
@@ -46,6 +49,10 @@ type Env struct {
 	Now    func() time.Time
 	// Git runs git with args in dir and returns stdout.
 	Git func(dir string, args ...string) ([]byte, error)
+	// HTTP is the client the comment command talks to GitHub with.
+	HTTP *http.Client
+	// Sleep waits between retries.
+	Sleep func(time.Duration)
 }
 
 // OSEnv is the real environment.
@@ -66,6 +73,8 @@ func OSEnv() Env {
 			}
 			return out, nil
 		},
+		HTTP:  &http.Client{Timeout: 30 * time.Second},
+		Sleep: time.Sleep,
 	}
 }
 
@@ -76,6 +85,8 @@ Usage:
   coverreport check   [flags]   exit 1 if any gate fails; prints the failures
   coverreport ratchet [flags]   raise floors.json to the current measurement
   coverreport text    [flags]   print a report as plain text
+  coverreport render  [flags]   write comment.md, summary.md, annotations.txt, report.html
+  coverreport comment [flags]   upsert the sticky PR comment (or --fetch the current one)
   coverreport version
 
 check, ratchet and text analyze afresh unless --report names a report.json
@@ -102,6 +113,10 @@ func Main(args []string, env Env) int {
 		err = runRatchet(rest, env)
 	case "text":
 		err = runText(rest, env)
+	case "render":
+		err = runRender(rest, env)
+	case "comment":
+		err = runComment(rest, env)
 	case "version":
 		fmt.Fprintln(env.Stdout, version())
 	case "help", "-h", "-help", "--help":
@@ -141,6 +156,7 @@ type common struct {
 	report                                        string
 	meta                                          report.Metadata
 	pr                                            string
+	baseline, endpoints                           string
 }
 
 type listFlag []string
@@ -174,6 +190,10 @@ func newFlags(name string, env Env, c *common, withReport bool) *flag.FlagSet {
 	fs.StringVar(&c.meta.HeadRef, "head-ref", "", "head branch (default $GITHUB_HEAD_REF)")
 	fs.StringVar(&c.meta.BaseRef, "base-ref", "", "base branch (default $GITHUB_BASE_REF)")
 	fs.StringVar(&c.meta.RunURL, "run-url", "", "CI run URL (default: from $GITHUB_SERVER_URL, $GITHUB_REPOSITORY, $GITHUB_RUN_ID)")
+	fs.StringVar(&c.meta.Title, "title", "", "pull request title (default: from the $GITHUB_EVENT_PATH payload)")
+	fs.StringVar(&c.meta.HeadSHA, "head-sha", "", "pull request head commit (default: from the $GITHUB_EVENT_PATH payload)")
+	fs.StringVar(&c.baseline, "baseline", "", "a report.json from the base branch; layers not measured here carry its numbers (display only)")
+	fs.StringVar(&c.endpoints, "endpoints", "", "the endpoint registry's endpoints.json; a missing file is a warning, its baseline violations are failures")
 	if withReport {
 		fs.StringVar(&c.report, "report", "", "use this report.json instead of analyzing")
 	}
@@ -241,7 +261,27 @@ func (c *common) analyze(env Env, ld *loaded) (*report.Report, error) {
 	if err != nil {
 		return nil, err
 	}
-	return report.Analyze(report.Input{
+	var base *report.Report
+	if c.baseline != "" {
+		if base, err = report.Load(c.baseline); err != nil {
+			return nil, fmt.Errorf("--baseline: %w", err)
+		}
+	}
+	var eps *endpoints.File
+	var epsMissing bool
+	if c.endpoints != "" {
+		eps, err = endpoints.Load(c.endpoints)
+		if errors.Is(err, os.ErrNotExist) {
+			// The registry's job may not have run (or landed) yet; the
+			// rows are then omitted, loudly, rather than failing the gate
+			// on a file nothing promised.
+			eps, err, epsMissing = nil, nil, true
+		}
+		if err != nil {
+			return nil, fmt.Errorf("--endpoints: %w", err)
+		}
+	}
+	r, err := report.Analyze(report.Input{
 		Root:        c.root,
 		InputsDir:   c.inputs,
 		Config:      ld.cfg,
@@ -252,7 +292,16 @@ func (c *common) analyze(env Env, ld *loaded) (*report.Report, error) {
 		Metadata:    meta,
 		Require:     c.require,
 		Now:         now(env),
+
+		Baseline:      base,
+		BaselineFile:  c.baseline,
+		Endpoints:     eps,
+		EndpointsFile: c.endpoints,
 	})
+	if err == nil && epsMissing {
+		r.Warnings = append(r.Warnings, fmt.Sprintf("--endpoints %s does not exist; endpoint completeness is omitted from this report", c.endpoints))
+	}
+	return r, err
 }
 
 // now honours SOURCE_DATE_EPOCH, so a report can be reproduced byte for byte.
@@ -280,6 +329,29 @@ func (c *common) metadata(env Env) (report.Metadata, error) {
 		server, repo, run := env.Getenv("GITHUB_SERVER_URL"), env.Getenv("GITHUB_REPOSITORY"), env.Getenv("GITHUB_RUN_ID")
 		if server != "" && repo != "" && run != "" {
 			m.RunURL = fmt.Sprintf("%s/%s/actions/runs/%s", strings.TrimSuffix(server, "/"), repo, run)
+		}
+	}
+	if ev := env.Getenv("GITHUB_EVENT_PATH"); ev != "" && (m.Title == "" || m.HeadSHA == "") {
+		// The pull_request payload is the only place Actions exposes the
+		// PR's title and head commit. A payload that cannot be read is not
+		// an error: the title is decoration.
+		if data, err := os.ReadFile(ev); err == nil {
+			var p struct {
+				PullRequest *struct {
+					Title string `json:"title"`
+					Head  struct {
+						SHA string `json:"sha"`
+					} `json:"head"`
+				} `json:"pull_request"`
+			}
+			if json.Unmarshal(data, &p) == nil && p.PullRequest != nil {
+				if m.Title == "" {
+					m.Title = p.PullRequest.Title
+				}
+				if m.HeadSHA == "" {
+					m.HeadSHA = p.PullRequest.Head.SHA
+				}
+			}
 		}
 	}
 	pr := c.pr

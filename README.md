@@ -5,8 +5,11 @@ and LCOV tracefiles (vitest, flutter, node --test all write LCOV). It merges
 each layer's artifacts, applies a reviewed exclusion list, computes totals per
 layer, per package and per glob, checks them against committed floors that
 only ever ratchet up, computes patch coverage from a git diff, and writes one
-versioned `report.json` that every renderer (PR comment, job summary,
-annotations, HTML page) is built from.
+versioned `report.json`. From that one report it renders the four GitHub
+surfaces: a sticky PR comment, the job summary, up to ten annotations on
+changed lines no test reaches, and a single self-contained HTML page (no
+script, no network) with every changed file line by line and a treemap of
+where the untested code lives.
 
 It is a single Go module with **no dependencies** (standard library only), so
 any repository can run it at a pinned commit:
@@ -37,6 +40,8 @@ coverreport analyze [flags]   compute report.json (to --out, default stdout)
 coverreport check   [flags]   exit 1 if any gate fails; prints the failures
 coverreport ratchet [flags]   raise floors.json to the current measurement
 coverreport text    [flags]   print a report as plain text (--detail: packages, lowest files)
+coverreport render  [flags]   write comment.md, summary.md, annotations.txt, report.html
+coverreport comment [flags]   upsert the sticky PR comment (or --fetch the current one)
 coverreport version
 ```
 
@@ -58,6 +63,30 @@ once, render and check the same report).
 | `--out` | `-` | `analyze`: where to write the report |
 | `--dry-run` | false | `ratchet`: print the changes, write nothing |
 | `--prune` | false | `ratchet`: also delete stale package/glob floors |
+| `--title`, `--head-sha` | from `$GITHUB_EVENT_PATH` | the PR's title and head commit (the `pull_request` payload carries both) |
+| `--baseline` | none | a `report.json` from the base branch: a layer this run did not measure (its collector was path-filtered out) shows the base branch's numbers, labelled as such. Display only: nothing carried is checked or ratcheted |
+| `--endpoints` | none | the endpoint registry's `endpoints.json`: its completeness rows join the report and its baseline violations fail the check. A path that does not exist is a warning |
+
+`render` and `comment` take their own flags:
+
+| Flag | Default | Meaning |
+|:--|:--|:--|
+| `render --report` | required | the `report.json` to render |
+| `render --out` | required | directory for the four files (created) |
+| `render --source-root` | none | a checkout of the measured commit. With it the surfaces quote the lines that never ran; without it they name and link them only |
+| `render --previous` | none | the sticky comment being replaced (from `comment --fetch`): its hidden state is the push-by-push patch history |
+| `render --artifact-url`, `--artifact-name` | none, `report.html` | where the page was uploaded, so the comment, summary and annotations can link it |
+| `comment --body` | | upsert this file (render's `comment.md`), found by its first line, the marker |
+| `comment --fetch` | | instead, write the current sticky comment's body to this file (empty when there is none) |
+| `comment --previous` | none | with `--body`: also write the body it replaced |
+| `comment --repo`, `--pr` | `$GITHUB_REPOSITORY`, from `$GITHUB_REF` | the pull request |
+| `comment --api-url` | `$GITHUB_API_URL`, else `https://api.github.com` | GitHub Enterprise Server, or a test double |
+
+`comment` reads its token from `GITHUB_TOKEN` and sends it only as the
+`Authorization` header: it is never printed, and every error is scrubbed of it.
+403, 404 and 401 answers come with what to change (the job's
+`permissions:`, the flags, the token). Reads and updates are retried on a 5xx;
+the create is not, so a timeout cannot post the comment twice.
 
 `SOURCE_DATE_EPOCH`, when set, replaces the clock in `generated_at`, so a
 report can be reproduced byte for byte.
@@ -93,35 +122,105 @@ base. A diff given with `--diff` may use any context size; combined diffs
 
 The collectors upload artifacts (`coverage-go`, `coverage-app`,
 `coverage-mobile`, ...; JSON job outputs are not a safe channel for this
-data), and one job downloads them all and runs the reporter once:
+data), and one job downloads them all and runs the reporter:
 
 ```yaml
 coverage:
   needs: [go-services, check, mobile]
+  # Run even when a collector was path-filtered out: its layer is then
+  # "not affected", and --require names the ones that must have reported.
   if: ${{ !cancelled() }}
   runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    pull-requests: write # the sticky comment
+    actions: read        # download-artifact
+  env:
+    CR: github.com/DarrenBangsund/coverreport/cmd/coverreport@<pinned-sha>
+    GITHUB_TOKEN: ${{ github.token }}
   steps:
     - uses: actions/checkout@v5
-      with: { fetch-depth: 2 }
+      with: { fetch-depth: 2 } # the merge commit and its first parent
+    - uses: actions/setup-go@v6 # any Go >= 1.25; a repo's own dev shell works too
+      with: { go-version: stable }
     - uses: actions/download-artifact@v5
       with: { pattern: coverage-*, path: coverage-artifacts }
-    # Any Go >= 1.25 on PATH: actions/setup-go, or the repo's own dev shell.
+
     - name: Analyze
-      env:
-        CR: github.com/DarrenBangsund/coverreport/cmd/coverreport@<pinned-sha>
       run: |
-        go run "$CR" analyze --inputs coverage-artifacts --diff-base HEAD^1 --out report.json
-        go run "$CR" text --report report.json >> "$GITHUB_STEP_SUMMARY"
-        # --require only the layers whose collector actually ran this time.
-        go run "$CR" check --report report.json --require go-unit,go-live
+        go run "$CR" analyze --inputs coverage-artifacts --diff-base HEAD^1 \
+          --endpoints coverage-artifacts/coverage-endpoints/endpoints.json --out report.json
+
+    # The push history lives in the sticky comment itself: read it back first.
+    - name: Previous comment
+      if: github.event_name == 'pull_request'
+      run: go run "$CR" comment --fetch previous.md
+
+    - name: Render
+      run: |
+        touch previous.md
+        go run "$CR" render --report report.json --out coverage-out --source-root . --previous previous.md
+
+    - name: Upload the page
+      id: page
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-${{ github.event.pull_request.number || github.run_id }}.html
+        path: coverage-out/report.html
+        archive: false     # a single HTML file opens in the browser
+        retention-days: 1  # an expired artifact still bills until deleted
+
+    # Render again now that the page has a URL, so everything links it.
+    - name: Publish
+      run: |
+        go run "$CR" render --report report.json --out coverage-out --source-root . --previous previous.md \
+          --artifact-url "${{ steps.page.outputs.artifact-url }}" --artifact-name "coverage-${{ github.event.pull_request.number || github.run_id }}.html"
+        cat coverage-out/summary.md >> "$GITHUB_STEP_SUMMARY"
+        cat coverage-out/annotations.txt
+        if [ "${{ github.event_name }}" = pull_request ]; then
+          go run "$CR" comment --body coverage-out/comment.md
+        fi
+
+    # The gate itself; --require only the layers whose collector ran.
+    - name: Check
+      run: go run "$CR" check --report report.json --require go-unit,go-live
 ```
 
-With the module private, `go run pkg@sha` needs `GOPRIVATE=github.com/DarrenBangsund/*`
-and a token git can use; alternatively vendor a copy of the module at a pinned
-commit.
+Notes:
 
-Locally, the same three commands work over whatever artifacts are on disk;
-`coverreport ratchet` then writes `coverage/floors.json` for review.
+- **Forks.** On a `pull_request` from a fork, `GITHUB_TOKEN` is read-only and
+  cannot comment; the comment step then fails with a message saying so. The
+  summary, annotations, page and check still work.
+- **The base branch's numbers.** A layer whose collector did not run on this
+  PR shows as "not run". To show main's numbers instead, save the
+  `report.json` of each main run (an `actions/cache` entry keyed by the
+  commit, restored with a `restore-keys` prefix) and pass it as
+  `analyze --baseline`.
+- **Annotations** are workflow commands on stdout, so the job needs no
+  `checks: write`.
+- **The page** needs a signed-in reader with access to the repository, like
+  any artifact. It makes no network request, so no content-security policy
+  can break it beyond its inline stylesheet.
+- With the module private, `go run pkg@sha` needs
+  `GOPRIVATE=github.com/DarrenBangsund/*` and a token git can use;
+  alternatively vendor a copy of the module at a pinned commit.
+
+Locally, the same commands work over whatever artifacts are on disk:
+`coverreport render --report report.json --out /tmp/cov --source-root .` and
+open `/tmp/cov/report.html`; `coverreport ratchet` writes
+`coverage/floors.json` for review.
+
+## Theming
+
+The page takes a `brand` block from `coverage/config.json`: a name, two font
+stacks and one colour per semantic token for each of the dark and light
+schemes ([SCHEMA.md, "Brand"](SCHEMA.md#brand) lists them, with handipay's
+Paper/Dim block as the example). Tokens name states, not colours: `ok` holds,
+`caution` needs a test, `warning` is below a floor, `target` is a goal or the
+line a link jumped to. Anything a brand leaves out takes the neutral default
+(GitHub's Primer greys). GitHub markdown carries no colour, so the comment and
+summary use only the name; their colour comes from GitHub's own `diff`
+highlighter, which colours each HUD row by its first character.
 
 ## What it measures, exactly
 
@@ -168,7 +267,26 @@ small demo repository (`testdata/repo`, `testdata/artifacts`,
 -coverpkg=./...` run and whose diff is real `git diff` output. A golden diff is
 a behaviour change: review it before regenerating.
 
+The renderers' goldens are in `testdata/render/<state>/` (`comment.md`,
+`summary.md`, `annotations.txt`, `report.html`), one directory per state a PR
+can be in: `ok`, `fail`, `warn` (patch under target, informational),
+`first-run` (no floors file), `carried` (a layer not run, carried from main,
+rendered without a source checkout), `e2e` (a report-only layer reaching code
+no gated layer does), `multi` (every kind of failure at once) and `large`
+(rendered into small budgets to show the shortening). Each is built by the
+real analysis over the fixture (`internal/render/rendertest`). The page
+goldens carry a placeholder for the stylesheet, which is pinned once per brand
+in `testdata/render/css/`.
+
 Layout: `cmd/coverreport` (entry point), `internal/cli` (flags, exit codes),
-`internal/report` (the analysis and the report model), `internal/render/text`,
-and one package per input: `gocov`, `lcov`, `diff`, `config`, `floors`,
-`exclude`, `glob`, `paths`, `coverage` (the shared arithmetic).
+`internal/report` (the analysis and the report model), `internal/render/view`
+(every rendering decision, made once), `internal/render/github` (comment,
+summary, annotations), `internal/render/html` (the page and its treemap),
+`internal/render/text`, `internal/ghapi` (the comment upsert), `internal/brand`,
+`internal/endpoints`, `internal/source`, and one package per input: `gocov`,
+`lcov`, `diff`, `config`, `floors`, `exclude`, `glob`, `paths`, `coverage`
+(the shared arithmetic).
+
+## License
+
+MIT; see [LICENSE](LICENSE).
